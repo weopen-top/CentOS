@@ -1,0 +1,38 @@
+日期：2020-06-08 23:12
+环境：python
+----------------------
+【shell函数回顾】
+function 函数名{
+}
+
+函数名(){
+}
+
+【python函数】
+# vim mystar.py                 #编辑一个python脚本
+#!/usr/bin/python
+#coding:utf-8
+
+Hi="Hello world!"               #定一个变量Hi
+
+def star():                     #定一个函数star
+    print "*"*20                #输出20个*
+    print "OK"                  #输出OK
+
+star()                          #执行star函数，前面不能有tab键（仅作演示，一般模块不写这行）
+
+# chmod +x mystart.py           #给脚本赋予执行权限
+# ./mystar.py                   #执行脚本
+********************
+OK
+
+【导入模块】
+# python                        #打开python解释器
+>>>import mystar                #导入mystar模块，一个脚本就是一个模块，不需要输.py后缀名
+********************
+OK
+>>> mystar.star()               #调用mystar模块的star函数
+********************
+OK
+>>> mystar.Hi                   #调用mystar模块的Hi变量
+'Hello world!'

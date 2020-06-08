@@ -1,1 +1,65 @@
 日期：2020-06-08 18:09
+环境：python
+-----------------------
+【简介】
+1.python是由C写的，可以运行在任何带有ANSI C编译器的平台。
+2.内存管理是由python解释器负责的。
+
+【安装】
+1.下载：http://python.org
+2.Windows版本使用python.msi
+3.类UNIX系统默认已经安装，若没有可以使用源码包安装。
+
+【简单尝试】
+# python                      #进入python解释器
+>>> quit()                    #退出python解释器，快捷键：ctrl+d
+
+print输出：
+（回顾：在shell里输出是echo）
+>>> print "hello world"       #打印，内容必须加引号（单引号或双引号）。（不加引号是变量）
+hello world
+>>> print "hello","world"     #逗号表示空格
+hello world
+>>> print "hello"+"world"     #+表示拼接
+helloworld
+>>> print "hello"*3           #支持乘号，乘号后面只能跟数字，且后面不能继续加字符串了。
+hellohellohello
+
+raw_input输入:
+（回顾：在shell里输入是read -p "提示信息" 变量）
+>>> raw_input("请输入数字：")
+请输入数字：33
+'33'
+>>> Pi=raw_input("请输入圆周率：")             #将输入内容赋值到变量
+请输入圆周率：3.1415926
+>>> print "圆周率是"+Pi
+圆周率是3.1415926
+
+【简单的python脚本】
+# vim user.py                           #新建一个脚本
+#!/usr/bin/python                       #注明解释器
+#coding:utf-8                           #注明编码
+user=raw_input("请输入用户名：")        #将输入内容赋值到user变量
+print "welcome",user                    #输出welcome $user
+
+# chmod +x user.py                      #给予执行权限
+# ./user.py                             #执行脚本
+请输入用户名：tom                       #按提示输入
+welcome tom                             #屏幕反馈输出内容
+
+【引号】
+>>> print "hello"                       #双引号不屏蔽特殊符号
+hello
+
+>>> print 'hello'                       #单引号屏蔽特殊符号
+hello
+
+>>> print '''hello                      #三单引号可以换行回车，屏蔽特殊符号
+... nihao'''
+hello
+nihao
+
+>>> print """hello                      #三双引号可以换行回车，不屏蔽特殊符号
+... nihao"""
+hello
+nihao
