@@ -1,0 +1,35 @@
+更新：20191207001
+测试环境：centos，deepin
+简介：alias别名是指将复杂的一长串命令用一个简短的命令代替，达到简化操作命令的目的。
+-----------------------
+【alias别名】
+1.临时创建alias别名的命令：
+alias 别名="命令"
+
+2.永久创建单用户alias别名的命令：
+备份配置文件
+cp -P ~/.bashrc ~/.bashrc_bak
+
+编辑配置文件
+vim ~/.bashrc
+
+修改配置文件
+... ...
+# My alias
+alias 别名="命令"
+
+
+3.永久创建全局命令别名：
+centos修改/etc/bashrc
+deepin修改/etc/bash.bashrc
+修改内容同永久创建单用户命令别名。
+
+
+4.取消alias别名：
+unalias {别名}        取消该别名
+unalias -a           取消所有别名
+
+
+【知识拓展】
+环境变量：
+https://www.cnblogs.com/lovychen/p/10911699.html

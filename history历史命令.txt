@@ -1,0 +1,33 @@
+更新：202002111044
+测试环境：centos7.4，deepin15.11
+-------------------
+【常用格式】
+history             直接使用，显示历史命令
+history -c          清除历史命令
+history | wc -l     显示历史命令行数。
+!{历史命令编号}       再次执行该编号历史命令
+!{历史命令关键词}     再次执行该关键词历史命令
+
+【定义历史命令条数】(修改HISTSIZE变量）：
+HISTSIZE全局环境变量（测试：centos7.4）
+[root@centos7 ~]# grep HISTSIZE /etc/profile
+HISTSIZE=1000
+export PATH USER LOGNAME MAIL HOSTNAME HISTSIZE HISTCONTROL
+
+HISTSIZE用户环境变量，定义历史命令行数。（测试：deepin15.11）
+user@deepin15:~$ grep HISTSIZE ~/.bashrc
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=50
+
+HISTFILESIZE用户环境变量,定义历史命令文件行数。（测试：deepin15.11）
+user@deepin15:~$ grep HISTFILESIZE ~/.bashrc
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTFILESIZE=100
+
+↑↑↑修改配置文件即可
+
+
+【存放历史命令的文件】
+~/.bash_history         bash解释器的历史命令
+~/.sh_history           sh解释器的历史命令
+... ...

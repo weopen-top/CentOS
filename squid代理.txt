@@ -1,0 +1,52 @@
+日期：2020-03-31 10：16
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+--------------------------------------------------------
+【代理软件的作用】
+1.翻墙
+2.web加速
+3.正向代理、反向代理、透明代理
+
+【优缺点】
+优点：功能多
+缺点：缓存页面在硬盘，相对慢。
+
+【配置文件】
+[root@proxy ~]# vim /etc/squid/squid.conf
+...
+56 http_access allow all    #http_访问 允许所有
+59 http_port 80 vhost   #http_端口 80 代理主机
+visible_hostname www.baidu.com  #可见_主机名 www.baidu.com
+cache_peer 192.168.2.100 parent 80 0 originserver   #捕捉_凝视 192.168.2.100 父域 的80 0端口 为原始服务器
+64 cache_dir ufs /var/spool/squid 100 16 256    #捕捉_目录 ufs文件系统 在/var/spool/squitd下 100M 16个主目录 256个子目录
+...
+
+【部署案例】
+1.[黑龙江]Web1,部署Web服务器，测试。网卡地址192.168.2.100
+yum -y install httpd
+echo "192.168.2.100" > /var/www/html/index.html
+systemctl start httpd
+firewall-cmd --set-default-zone=trusted
+
+2.[江西]Proxy，代理服务，网卡一192.168.4.5,网卡二192.168.2.5
+yum -y install squid
+vim /etc/squid/squid.conf
+
+3.Client客户端地址192.168.4.100，测试.网卡地址192.168.4.100
+curl -I http://192.168.4.5/
+...
+X-Cache-Lookup: MISS from www.baidu.com:80  #第一次访问是MISS。
+
+curl http://192.168.4.5/
+192.168.2.100
+
+curl -I http://192.168.4.5/
+...
+X-Cache-Lookup: HIT from www.baidu.com:80   #第一次之后访问是HIT。
+
+【日志】
+Proxy:
+    var/log/squid/access.log    访问日志
+    var/log/squid/squid.out     软件日志
+
+Web1:
+    /var/log/httpd/access_log

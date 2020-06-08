@@ -1,0 +1,88 @@
+日期：2020-05-23 19:01
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+--------------------------------------------------------
+【简介】
+nginx、httpd————静态html页面
+动态页面：java，C，python，PHP，shell等代码执行后才显示页面结果
+
+【网站架构】
+LNMP（Linux，nginx，mysql（mariadb），php，python，perl）
+LAMP（Linux，apache，mysql（mariadb），php，python，perl）
+    （tomcat+java）
+
+【LNMP架构需要安装的软件】
+nginx（源码包）,服务端口80
+
+mariadb数据库客户端
+mariadb-server数据库服务器,服务端口3306
+mariadb-devel依赖包
+
+php解释器
+php-mysql mariadb插件
+php-fpm（安装光盘里没有），服务端口9000，配置文件/etc/php-fpm.d/www.conf
+
+【LNMP安装软件包操作】
+#nginx安装步骤参考《nginxWEB服务器》笔记
+#yum -y install mariadb mariadb-server mariadb-devel php php-mysql
+#yum localinstall php-fpm       #用yum本地安装或rpm -ivh安装，需要有php-fpm.rpm安装包
+
+【启动LNMP服务】需要关闭httpd
+#nginx;systemctl mariadb.service php-fpm.service
+
+【检测LNMP服务】
+#netstat -nutlp |grep 80;netstat -nutlp |grep 3306;netstat -nutlp |grep 9000
+
+【LNMP协同工作】
+1.nginx和PHP协同工作（动静分离）
+    静态页面请求<====>nginx
+    动态页面请求<====>nginx<====>PHP解释器
+修改nginx配置文件，实现动静分离
+#vim /usr/local/nginx/conf/nginx.conf
+    #location用来匹配用户的地址栏，支持正则
+        server{
+            listen  80;
+            server_name www.baidu.com;
+
+静态        location / {
+                root    html
+            }
+
+动态        location ~ \.php$ {      #~表匹配，"."在正则中表任意字符，用\注释掉。
+                root    html;       #如果匹配了正则，则在此根目录下找到该页面
+                fastcgi_pass    127.0.0.1:9000;     #将找到的页面转发给本地9000端口
+                fastcgi_index   index.php;
+修改            include         fastcgi.conf;       #加载另一个配置文件
+            }
+        }
+
+2.php-fpm配置文件概述
+#vim /etc/php-fpm.d/www.conf
+ 12 listen = 127.0.0.1:9000         #监听端口
+ 24 listen.allowed_clients = 127.0.0.1          #监听IP地址
+ 39 user = apache
+ 41 group = apache
+ 60 pm = dynamic            #static静态，dynamic动态
+ 70 pm.max_children = 50        #静态方式下开启的php-fpm进程数量，在动态方式下他限定php-fpm的最大进程数（这里要注意pm.max_spare_servers的值只能小于等于pm.max_children）。
+ 75 pm.start_servers = 5        #动态方式下的起始php-fpm进程数量。
+ 80 pm.min_spare_servers = 5        动态方式空闲状态下的最小php-fpm进程数量。
+ 85 pm.max_spare_servers = 35       #动态方式空闲状态下的最大php-fpm进程数量。
+
+参考链接：https://blog.csdn.net/a5816138/article/details/53670597
+
+3.nginx、php、mariadb协同运作
+    页面请求<====>nginx<====>php-fpm<====>mariadb
+    代码====>/usr/local/nginx/html====>网站上线
+
+
+【常见错误】
+1.php服务器没启动
+    参考/usr/local/nginx/logs/error.log
+
+2.nginx配置文件（动静分离）
+    出现下载页面
+
+3.404 not found
+    网页未找到，网页文件路径不对。
+
+4.空白页面
+    php脚本代码出错

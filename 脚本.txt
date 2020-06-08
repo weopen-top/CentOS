@@ -1,0 +1,60 @@
+更新：202002041932
+测试环境：deepin15.11
+----------------
+【脚本的文件名】
+脚本一般有专属的文件名，例如：
+shell脚本文件名以.sh结尾
+python脚本文件名以.py[*]结尾
+批处理文件名以.bat结尾（Windows）
+
+【解释器】
+在脚本开头需用#!注明解释器，例如：
+#!/bin/bash
+#!/usr/bin/python
+
+【注释】
+用#开头的字段对脚本解释说明，不会执行，例如：
+user@hostname:~$ vim 脚本文件.sh
+#!/bin/bash
+#Date:20200204
+#Version:v1.0.1
+#Description:This my first script.
+echo "Hello world!"
+
+【权限】
+脚本文件需要有执行权限，例如：
+user@hostname:~$ chmod +x 脚本文件.sh
+
+如果脚本没有执行权限，也可以用bash、sh、source执行，例如：
+user@hostname:~$ bash 脚本文件.sh
+Hello world!
+user@hostname:~$ source 脚本文件.sh
+Hello world!
+（原理：bash和source命令工具本身有执行权限）
+
+=>延伸：
+bash、sh会新开一个子进程执行脚本，但source会直接在当前进程执行脚本。
+source也可以令配置文件立即生效。
+
+【执行脚本】
+方法一：输入脚本相对路径
+user@hostname:~$ ./脚本文件.sh
+Hello world!
+
+方法二：输入脚本绝对路径
+user@hostname:~$ /home/user/脚本文件.sh
+Hello world!
+
+方法三：将脚本放入$PATH变量路径下
+user@hostname:~$ echo $PATH
+/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/sbin:/usr/sbin
+user@hostname:~$ cp 脚本文件.sh /usr/local/bin
+user@hostname:~$ 脚本文件.sh
+Hello world!
+
+【运维工作脚本】
+1.自动部署脚本[安装脚本]
+2.启动脚本[管理服务，更方便的使用服务]
+3.监控脚本[监控攻击IP、性能、主机状态、服务端口等]
+4.过滤数据[分析日志]
+5.系统初始化[修改新装机若干系统参数，如主机名、IP等]

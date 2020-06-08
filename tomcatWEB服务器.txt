@@ -1,0 +1,206 @@
+日期：2020-05-28
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+-----------------------
+tomcat是运行java程序的web服务器
+【Java开发语言】
+简介：Java是一种跨平台的、面向对象的程序设计语言，Java技术具有卓越的通用性、高效性、平台移植性和安全性。
+
+Java体系：SE标准版、EE企业版、ME移动版
+
+【JDK Java开发工具包】
+JDK是Sun针对Java开发者推出的Java语言的软件开发工具包，最广泛的Java SDK，是整个Java的核心。其中包括了 Java运行环境、Java工具（如编译、排错、打包等工具）、Java基础的类库（类似shell函数）。
+
+【JRE Java运行环境】
+运行Java程序所必须的环境的集合，包含JVM标准实现及Java核心类库。其中包括了 Java虚拟机（jvm）、Java核心类库和支持文件、不含开发工具（JDK）——编译器、调试器和其他工具。JRE是JDK的子集（阉割版）。
+
+【Java Servlet】
+Servlet是一种扩展Web服务器功能的组件规范，他能够以一种可移植的方法来提供动态的、面向用户的内容，处理用户请求。开发者一般主要开发的是Servlet容器中的Servlet代码。
+
+常见Servlet容器：
+IBM         websphere
+Oracle      weblogic
+Apache      tomcat
+Redhat      Jboss
+
+【JSP】
+SUN推出的类似于ASP的镶嵌型的JSP，把JSP TAG镶嵌到HTML语句中，大大简化和方便了网页的设计和修改。
+
+↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+↓↓↓以上26行纯属废话，请看下方↓↓↓↓
+↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+
+【安装Tomcat】
+1.首先安装jdk1.8
+#yum -y install java-1.8.0-openjdk
+#yum -y install java-1.8.0-openjdk-headless
+
+2.解压tomcat程序包，并移动到合适的位置（不需要安装）
+#tar -xzf apache-tomcat-8.0.30.tar.gz
+#mv apache-tomcat-8.0.30 /usr/local/tomcat
+#ls /usr/local/tomcat
+bin/            #主程序目录
+lib/            #库文件目录
+logs/           #日志目录
+temp/           #临时目录
+work/           #自动编译目录jsp代码转换servlet
+conf/           #配置文件目录
+webapps/        #页面目录
+
+【运行Tomcat】
+#/usr/local/tomcat/bin/startup.sh           #开启tomcat服务
+#/usr/local/tomcat/bin/shutdown.sh          #关闭tomcat服务
+
+【用nginx调度tomcat集群】
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    upstream tomcats {                  #添加集群
+        server 127.0.0.1:8080;
+        server ....:8080;
+    }
+...
+    server {
+        listen  80;
+        server_name     localhost;
+        location / {
+        proxy_pass http://tomcats;      #调用集群
+            root    html;
+        }
+    }
+
+【Tomcat虚拟主机】
+用户访问的地址
+appBase     项目根路径，因为一个虚拟机里有不同的小程序，项目根路径可以方便管理。
+docBase     首页路径
+path        匹配地址栏，当用户输入path路径，匹配的是docBase路径。
+
+创建虚拟机
+#vim /usr/local/tomcat/conf/server.xml
+
+<Server>
+<Service>
+    <Connector port=8080 />
+    <Connector port=8000 />
+    <Engine default=localhost>                  #Engine定义默认（缺省）虚拟主机
+
+        <Host name=www.a.com appBase="a"        #虚拟机www.a.com，项目根路径为a
+        unpackWARs="true" autoDeploy="true">
+
+          <Context path="" docBase="base"       #首页路径为a/base，不写默认为ROOT。
+          reloadable="true"/>                   #reloadable表示当网站里的配置改了是否重新加载。
+
+          <Context path="/test" docBase="/var/www/html/"     #当用户访问www.a.com/test，访问的是/var/www/html
+          reloadable="true"/>
+
+        </Host>                                 #每个虚拟机以</Host>作为结尾
+
+
+        <Host name=www.b.com appBase="b"        #另一个虚拟机www.b.com，项目根路径为b
+        unpackWARs="true" autoDeploy="true">
+
+        </Host>
+
+
+        <Host name=localhost appBase="webapps">     #tomcat默认虚拟机
+        unpackWARs="true" autoDeploy="true">
+
+        </Host>
+
+    </Engine>
+</Service>
+</Server>
+
+创建虚拟主机目录及主页(主页默认在ROOT目录下）
+# cd /usr/local/tomcat/
+# mkdir -p a/base
+# mkdir -p b/ROOT
+# echo "This is a/base/index.html" > a/base/index.html
+# echo "This is b/ROOT/index.html" > b/ROOT/index.html
+# echo "This is /var/www/html/index.html" > /var/www/html/index.html
+重启tomcat
+# bin/shutdown.sh 
+# bin/startup.sh 
+
+访问测试
+# firefox www.a.com:8080
+This is a/base/index.html
+
+# firefox www.b.com:8080
+This is b/ROOT/index.html
+
+# firefox www.a.com:8080/test
+This is /var/www/html/index.html
+
+【tomcat工作原理】
+╔══════╗
+║Context     ║                                        ╔════╗
+║path=""     ║                                        ║ Server ║TCP8005端口
+╚══════╝╲  ╔══════╗                    ╚════╝
+                  ╲║    Host    ║                         ┃
+                  ╱║  localhost ║                         ┃
+╔══════╗╱  ╚══════╝╲  ╔═══╗      ╔════╗
+║Context     ║                      ╲║Engine║━━━║Service ║
+║path="/test"║    ╔══════╗  ╱╚═══╝      ╚════╝
+╚══════╝    ║    Host    ║╱                      ╱╲
+                    ║  www.a.com ║                      ╱    ╲
+                    ╚══════╝                    ╱        ╲
+                                            ╔═════╗        ╔═════╗
+                                            ║Connector ║        ║Connector ║
+                                            ╚═════╝        ╚═════╝
+                                                  ┃                    ┃
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━TCP
+                                                 8080                  8009
+Sserver、Service、Engine只有一个
+Connector、Host、Context可以有多个
+
+【tomcat加密网站】
+1.生成私钥和证书
+# keytool -genkeypair -alias tomcat -keyalg RSA  -keystore /usr/local/tomcat/keystore
+解释：
+keytool             #jdk工具包里的工具
+-genkeypair         #产生一个密钥
+-alias tomcat       #别名，参数自定义
+-keyalg RSA         #算法，RSA算法
+-keystore /usr/local/tomcat/keystore        #密钥保存位置
+>密码               #打开密钥的密码
+>国家，省份，公司...OK？     #密钥的一些信息，最后“y”或“是”确定。
+
+2.修改配置，调用密钥
+# vim tomcat/conf/server.xml
+ 84     <!--            #去掉
+ 85     <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+ 86                maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+添加               keystoreFile="/usr/local/tomcat/keystore" keystorePass="123456"
+ 87                clientAuth="false" sslProtocol="TLS" />
+ 88     -->             #去掉
+去掉<!--和-->，<!--和-->之间的内容为注释，参数之间必须有空格。
+
+3.tomcat加密网站端口默认是8443
+验证：https://localhost:8443
+
+【tomcat日志】
+每个Host要单独配置日志
+directory           #日志的位置
+prifix              #日志的名字
+suffix              #日志文件的扩展名
+# vim tomcat/conf/server.xml
+        <Host ... >
+        ...
+        <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+               prefix="localhost_access_log" suffix=".txt"
+               pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+        ...
+        <Host/>
+
+【tomcat优化】
+# vim tomcat/conf/server.xml
+...
+    <Connector port="8080" 
+               protocol="HTTP/1.1" 
+添加           maxThreads="1000"            #客户请求最大线程数，默认256
+添加           minSpareThreads="100"        #最小空闲线程数
+添加           maxSpareThreads="1000"       #最大空闲线程数
+添加           acceptCount="1000"           #监听端口队列最大数
+添加           enableLookups="false"
+添加           URIEncoding="utf-8"          #编码，utf-8支持的语言更多。
+               ...
+    />

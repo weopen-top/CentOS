@@ -1,0 +1,39 @@
+更新：202002031407
+环境：deepin15.11
+-----------------
+【输出重定向】
+概述：将命令输出的结果重定向到文本
+>   正确信息覆盖重定向,也可以用1>表示。
+>>  正确信息累加重定向,也可以用1>>表示。
+
+2>  错误信息覆盖重定向。
+2>> 错误信息累加重定向。
+
+&>  所有信息覆盖重定向。
+&>> 所有信息累加重定向。
+
+【输入重定向】
+概述：将文本里的内容输入到命令交互行
+<   将文本内容重定向至输入内容
+
+演示1：
+user@hostname:~$ echo 123 > ~/host.txt
+user@hostname:~$ cat ~/host.txt
+123
+user@hostname:~$ echo 456 > ~/host.txt
+user@hostname:~$ cat ~/host.txt
+456
+
+演示2：
+user@hostname:~$ echo 123 > 1.log
+user@hostname:~$ ls 1.log 没有的文件名 1>>1.log 2>>2.log
+user@hostname:~$ cat 1.log 
+123
+1.log
+user@hostname:~$ cat 2.log
+ls: 无法访问'没有的文件名': 没有那个文件或目录
+
+【空设备】
+/dev/null
+作用：将不用的信息丢弃
+用法：[2或&]> /dev/null

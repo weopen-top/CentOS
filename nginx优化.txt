@@ -1,0 +1,115 @@
+日期：2020-05-25 18:22
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+--------------------------------------------------------
+【不显示nginx版本号】安全优化
+原因：每个版本号有不同的漏洞，隐藏版本号规避针对性攻击。
+http {
+...
+    server_tokens   off;        #隐藏版本号，在http下添加。
+...
+}
+
+【增加并发量】
+1.编辑nginx配置文件，修改最大并发量
+#vim /usr/local/nginx/conf/nginx.conf
+worker_processes        //worker数量，与CPU核心数一致，ps aux |grep nginx查看运行中的worker。
+worker_connections      //每个worker最大并发连接数，推荐65536计算机最大进程数，可以更大。
+
+2.查看Linux系统限制程序开启进程的数量
+#ulimit -a |grep "open files"           //查看linux系统限制程序最大开启进程的数量
+open files                      (-n) 1024
+
+3.修改打开文件数量限制
+编辑Linux安全限制的配置文件（重启计算机后永久生效）
+#vim /etc/security/limits.conf          #security安全相关，limits限制相关。
+...
+#        - nofile - max number of open file descriptors
+...
+#<domain>用户     <type>类型      <item>项目      <value>值
+加  *               soft软         nofile         100000
+加  *               hard硬         nofile         100000
+...
+
+使用ulimit命令（临时生效，重启计算机后失效）
+#ulimit -Hn 100000
+#ulimit -Sn 100000
+
+4.验证：
+# ulimit -a |grep "open files"
+open files                      (-n) 100000
+
+5.压力测试软件，自行下载安装,测试机也要修改打开文件数量限制。
+ab -c 并发数 -n 总请求数 URL           #光盘自带，httpd的一个插件包。
+webbench -c 并发数 -s 测试时间 URL
+http_load -p 并发数 -s 测试时间 URL
+siege -c 并发数 -r 重复次数 URL。
+
+#wc -l /usr/local/nginx/logs/access.log     #查看当前访问量
+
+【增加头部信息缓存buffer】
+默认情况下当客户端访问nginx，nginx会创建1k大小的buffer缓存，如果访问头部信息大于1k就会报错。这是我们要修改buffer头部缓存。
+http {
+...
+加  client_header_buffer_size   1k;         #客户端头部缓存大小为1k
+加  large_client_header_buffers 4   4k;     #当超出时客户端头部缓存为4个大小为4k
+...
+}
+
+【用户客户端缓存】
+修改配置文件，使客户端缓存jpg、png、gif格式文件30天。
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    server {
+        listen  80;
+        location ~ \.(jpg|png|gif) {
+            expires 30d;
+        }
+...
+
+#find / -name "*.jpg"
+#cp xxx.jpg /usr/local/nginx/html/a.jpg
+#nginx -s reload
+
+客户端清除firefox历史缓存
+#firefox http://192.168.4.5/a.jpg
+#firefox about:cache
+
+【自定义报错页面】
+[返回码]
+200类   正常
+300类   缓存类消息
+400     请求语法错误
+401     访问被拒绝（账户或密码错误）
+403     资源不可用，通常由于服务器上文件或目录的权限设置导致
+403     禁止访问：客户端的IP地址被拒绝
+404     无法找到指定位置的资源（Not Found）
+414     请求URI头部太长
+500     服务器内容错误
+502     服务器作为网关或者代理时，为了完成请求访问下一个服务器，但该服务器返回了非法的应答（Bad Gateway）
+
+[看访问日志]
+#cat /usr/local/nginx/logs/access.log
+192.168.4.254 - - [26/May/2020:10:38:11 -0400] "GET /a.jpg HTTP/1.1" 200 2964 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0"
+其中200便是返回码
+
+[更改报错页面]
+修改配置文件
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    server {
+        listen  80;
+        server_name localhost;
+        ...
+去掉注释  error_page 404      /404.html;
+        ...
+    }
+...
+
+添加报错页面
+#echo "抱歉，您访问的页面不存在..." > /usr/local/nginx/html/404.html
+
+访问不存在的页面
+#curl localhost/不存在的页面
+
+【防盗链接处理】
+referer值对比，如果referer值不是本站点则为盗链接。

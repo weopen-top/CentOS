@@ -1,0 +1,244 @@
+日期：2020-04-20 19:01
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+--------------------------------------------------------
+【nginx依赖包】
+gcc             #用于编译安装
+pcre-devel      #正则表达式
+openssl-devel   #加密
+zlib-devel      #新版本的需要
+【nginx模块化软件】
+功能少，性能高
+功能多，性能低
+模块化可以灵活安装需要的功能，减少不必要的系统资源开销。
+模块的源代码在nginx-1.8.0/src/目录下
+
+【源码安装步骤】
+下载安装包
+tar -xf 软件压缩包
+cd 安装目录
+./configure \
+            --help              #帮助信息，./configure --help|grep 查找内容
+            --user=nginx        #用户，默认nobody
+            --group=nginx       #组，默认nobody
+            --prefix=路径        #安装位置，默认/usr/local/nginx/
+            --with-模块          #启用模块
+            --without-模块       #禁用模块
+            --with-http_ssl_module  #启用网站加密模块（https，默认安装模块中不包含）
+make    #编译
+make install    #拷贝编译程序（安装）
+
+【目录】
+conf    配置文件
+html    网站页面
+logs    日志和pid
+sbin    主程序
+
+【启动服务】
+1.查看占用80端口的服务并杀掉
+netstat -utpnl |grep 80     #查看占用80端口的服务
+kill -9 占用端口服务进程号
+pkill 占用端口服务名称        #若kill无效，可使用"pkill|killall [服务名]"杀掉服务所有进程。
+
+2.启动nginx
+/usr/local/nginx/sbin/nginx             #启动服务
+/usr/local/nginx/sbin/nginx -s stop     #关闭服务
+/usr/local/nginx/sbin/nginx -s reload   #重新加载配置
+/usr/local/nginx/sbin/nginx -V          #查看软件信息
+/usr/local/nginx/sbin/nginx -t          #查看配置文件是否有语法错误
+
+3.可以设置启动命令链接
+ln -s /usr/local/nginx/sbin/nginx /usr/local/sbin
+
+
+【升级】（仅升级主程序！）
+注意！：直接安装新版本会覆盖老版本目录下的所有内容！
+保留！配置文件
+     页面内容
+     日志
+步骤：
+先备份
+cd /usr/local/nginx/sbin/;mv nginx nginx.bak
+如果资源够的话也可以直接备份/usr/local/nginx/目录
+
+再升级
+下载新软件包
+tar -xf 新软件压缩包
+cd 安装目录
+./configure --with-要安装的模块
+make    #千万不要make install！！！！
+cp ojbs/nginx /usr/local/nginx/sbin/    #或者使用make upgrade
+nginx -V    #查看nginx安装信息
+
+【配置文件】
+主配置文件：/usr/local/nginx/conf/nginx.conf
+内容：
+全局配置[用户，进程数量，日志位置，并发连接数量，]未启用则使用默认参数。
+http{
+    server{
+        listen 80;      #监听端口，不加“IP:”表示“*:”
+        server_name www.baidu.com;
+        charset utf-8;  #编码，utf-8支持多国语言
+        root html;      #根目录，相对路径在nginx安装目录
+    }
+    server{
+        listen 80;
+        server_name www.163.com;
+        root html;
+    }
+}
+
+【用户认证】（需要输入用户名和密码，才可以访问网站）
+1.修改/usr/local/nginx/conf/nginx.conf配置文件。
+# vim /usr/local/nginx/conf/nginx.conf
+...
+http{
+    server{
+        listen 80
+写  auth_basic  "Input pass:";
+写  auth_basic_user_file "/usr/local/nginx/pass";
+    }
+}
+...
+
+2.安装密码工具,生成密码文件。
+# yum -y install httpd-tools
+# htpasswd -cm /usr/local/nginx/pass 用户名      #-c create创建，只在第一次用；-m md5加密。
+>密码
+# nginx -s reload
+
+【虚拟主机】
+1.服务端配置
+# vim /usr/local/nginx/conf/nginx.conf
+...
+    server{
+	   listen	192.168.4.5:80;
+	   server_name	www.a.com;
+	   location / {
+		  root    html;
+		  index   index index.html index.htm;
+	   }
+    }
+
+...
+添加：
+    server{
+	   listen	192.168.4.5:80;
+	   server_name	www.b.com;
+	   location / {
+		  root    web;
+		  index   index index.html index.htm;
+	   }
+    }
+
+...
+#mkdir /usr/local/nginx/web         #创建新添加虚拟主机root目录
+#echo "www.b.com" /usr/local/nginx/web/index.html       #创建新添加虚拟主机主页
+#nginx -s reload        #加载配置（重启nginx）
+
+2.客户端验证
+#echo "192.168.4.5 www.a.com www.b.com" >> /etc/hosts
+firefox http://www.a.com
+firefox http://www.b.com
+如果直接用IP访问，则访问的是nginx第一个server。
+
+【https网站加密】
+https核心————密钥
+加密算法：
+    1.对称算法（AES，DES），加密解密密码相同。适合单机加密。
+    2.非对称算法（RSA，DSA），加密解密密码不同，公钥私钥。适合网络加密
+    3.信息摘要（md5,sha256,sha512），一般用于数据完整性一致性校验。
+
+1.生成证书（公钥）和私钥
+#cd /usr/local/nginx/conf   #nginx私钥默认存放位置
+#openssl genrsa >my.key     #生成RSA私钥
+#openssl req -new -x509 -key my.key -out my.crt     #生成私钥对称的证书
+>国家名称CN（只能允许2个字符）
+>省份
+>城市
+>公司名称
+>部门名称
+>主机名称
+>邮箱
+
+2.修改nginx配置实现https加密网站
+#vim /usr/local/nginx/conf/nginx.conf
+把配置文件最后一个虚拟主机打开
+    server {
+        listen       443 ssl;
+改      server_name  www.c.com;
+
+改      ssl_certificate      my.crt;
+改      ssl_certificate_key  my.key;
+
+        ssl_session_cache    shared:SSL:1m;
+        ssl_session_timeout  5m;
+
+        ssl_ciphers  HIGH:!aNULL:!MD5;
+        ssl_prefer_server_ciphers  on;
+
+        location / {
+可改         root   html;
+            index  index.html index.htm;
+        }
+    }
+..
+#nginx -s reload    #重启配置
+
+3.客户端验证
+#firefox https://www.c.com
+添加信任
+    a.手动添加
+    b.找证书颁发机构
+    c.开发插件
+
+【反向代理】web调度服务器
+好处：
+1.web高可用（没有单点故障）
+2.负载均衡
+3.集群高可用
+
+[步骤]
+准备：nginx服务器（Proxy 192.168.4.5，192.168.2.5)，web服务器2台（Web1 192.168.2.100、Web2 192.168.2.200），客户端（192.168.4.100）
+
+1.搭建web服务器(两台web都操作）
+#yum -y install httpd
+#systemctl start http
+#echo "192.168.2.100" > /var/www/html/index.html    #Web1页面
+#echo "192.168.2.200" > /var/www/html/index.html    #Web2页面
+防火墙放行
+
+2.使用nginx做调度器(nginx服务器）
+还原默认配置
+#cd /usr/local/nginx/conf
+#mv nginx.conf nginx.conf_bak
+#cp nginx.conf.default nginx.conf
+
+配置集群
+#vim /usr/local/nginx/conf/nginx.conf
+...
+加  upstream webs {         #定义集群名字为webs，可以自定义名字。
+        ip_hash;        #相同客户端访问相同服务器
+加      server  192.168.2.100 weight=2;      #配置权重，权重值默认为1。
+加      server  192.168.2.200 max_fails=1 fail_timeout=30;       #设置失败次数，和超时时间，如果停用在末尾加down。
+加  }
+    server {
+        listen  80;
+        server_name     localhost;
+        location / {
+加      proxy_pass http://webs;      #调用集群
+            root    html;
+        }
+    }
+...
+#nginx -s reload
+
+客户端验证
+#crul http://192.168.4.5
+192.168.2.100
+#crul http://192.168.4.5
+192.168.2.200
+
+【常见报错】
+提示：nginx: [error] invalid PID number "" in "/usr/local/nginx/logs/nginx.pid"
+原因：nginx服务未开启时，使用nginx -s reload命令。
+解决：nginx -c /usr/local/nginx/conf/nginx.conf

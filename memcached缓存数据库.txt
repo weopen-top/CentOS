@@ -1,0 +1,87 @@
+日期：2020-05-31 14:28
+系统：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+---------------------------------------------------------
+【memcached】
+分布式的高速缓存系统、缓存数据库、kv数据库（key=value结构，不支持表结构）、nosql数据库
+kv结构：只记录查询的内容和查询的结果。
+优点：读写速度极快
+缺点：数据会丢失，过于简单，不支持SQL
+
+【memchached作用】
+数据存储位置性能对照：
+CPU缓存——内存——硬盘——数据库
+数据存储位置价格对照：
+CPU缓存——内存——硬盘——数据库
+传统数据库架构当数据条目达到1000W条时，查找性能就会跟不上。
+memchached可以将数据库内容缓存起来，减轻mysql等数据库查找压力。
+
+用户<====>nginx+PHP<====>memcached<====>mysql
+                         高速缓存
+
+【安装memcached】rhel7可以用yum安装
+# yum -y install memcached
+# rpm -qa | grep mem
+memcached-1.4.15-9.el7.x86_64
+
+【systemctl服务文件】
+每个systemctl服务在/usr/lib/systemd/system下都有一个启动文件。
+# cat /usr/lib/systemd/system/memcached.service
+...
+EnvironmentFile=-/etc/sysconfig/memcached           #环境变量存储文件
+ExecStart=/usr/bin/memcached -u $USER -p $PORT -m $CACHESIZE -c $MAXCONN $OPTIONS       #启动命令
+...
+# cat /etc/sysconfig/memcached
+PORT="11211"            #端口
+USER="memcached"        #用户
+MAXCONN="1024"          #最大连接数量
+CACHESIZE="64"          #缓存大小，单位M
+OPTIONS=""
+
+
+
+【memcached操作】
+[指令]
+add name 0 180 10       #变量不存在则添加（只能添加）
+set name 0 180 10       #添加或者替换变量
+replace name 0 180 10   #替换
+get name                #读取变量
+append name 0 180 10    #向变量中追加数据
+delete name             #删除变量
+stats                   #查看状态
+flush_all               #清空所有
+
+[演示]
+# telnet 127.0.0.1 11211         #连接memcached数据库
+set name 0 100 3                #set写 名为name的key 0不压缩 存100秒 存3个字符
+abc                             #值（value）为abc
+get name                        #get读name的值
+abc
+append name 0 100 5
+12345
+get name
+abc12345
+
+【PHP连接memcached】
+安装php扩展工具
+# yum list |grep mem
+...
+php-pecl-memcache.x86_64                3.0.8-4.el7                dvd          
+...
+# yum -y install php-pecl-memcache.x86_64
+
+重启php-fpm
+# systemctl restart php-fpm.service 
+
+排错：
+/var/log/php-fpm/www-error.log      日志，Permission denied权限拒绝，可能是selinux阻挡。
+/var/local/nginx/logs/error.log     日志
+
+【LNMP架构分析】
+静态：client<====>80nginx<====>xxx.html
+动态：client<====>80nginx<====>xxx.php<====>9000php-fpm+memcache扩展工具<====>11211memcached
+
+工具包成员：
+nginx
+php  php-fpm     php-mysql  php-pecl-memcache
+mariadb  mariadb-server  mariadb-devel
+memcached

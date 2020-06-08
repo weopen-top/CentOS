@@ -1,0 +1,105 @@
+日期：2020-06-02 08:40
+环境：
+--------------------------------------------
+【Session】
+存储在服务器端，保存用户名、密码等信息。
+
+【Cookies】
+由服务器下发给客户端，保存在客户端的一个文件里。
+保存的内容主要包括：SessionID、账号名，过期时间，路径和域。
+
+【背景】
+    相同客户端被调度不同的web服务器，当刷新浏览器时，新调度的web无法识别旧的SessionID重新生产Cookies，SessionID也随之刷新。造成用户数据无法缓存、信息易错乱和易泄露等问题。使用memcached数据库统一保管SessionID，可以使相同的客户端被调度不同的web服务器时，SessionID一致。
+
+【session信息共享架构】
+client<====>nginx（调度服务器）+memcached(数据库统一管理session）<====>tomcat1、tomcat2、...
+
+
+【搭建调度服务器】
+client<====>nginx（调度服务器）<====>tomcat1、tomcat2、...
+
+1.修改nginx配置文件
+# vim /usr/local/nginx/conf/nginx.conf
+...
+http {
+    ...
+    upstream tomcats {
+    server 192.168.2.100:8080;
+    server 192.168.2.200:8080;
+    }
+
+    server {
+        listen          80;
+        server_name     localhost;
+
+        location / {
+        proxy_pass  http://tomcats;
+        }
+        ...
+    }
+    ... 
+}
+
+2.编写java页面，
+[tomcat1]
+# vim /usr/local/tomcat/webapps/ROOT/test.jsp 
+<html>
+        <body bgcolor="red">
+            <center>
+<%String s = session.getId();%>
+<%=s%>
+                <h1>tomcatA </h1>
+            </center>
+        </body>
+</html>
+
+[tomcat1]
+# vim /usr/local/tomcat/webapps/ROOT/test.jsp 
+<html>
+        <body bgcolor="blue">
+            <center>
+<%String s = session.getId();%>
+<%=s%>
+                <h1>tomcatB </h1>
+            </center>
+        </body>
+</html>
+
+3.客户端访问
+# firefox 192.168.4.5/test.jsp
+每次刷新访问不同的服务器页面，显示的SessionID每次都不一样。
+
+【搭建session共享】
+1.在所有tomcat服务器安装java插件
+# cd lnmp_soft/session/
+# ls
+asm-5.1.jar       kryo-3.0.3.jar                           minlog-1.3.0.jar               test.jsp
+context.default   kryo-serializers-0.34.jar                msm-kryo-serializer-1.9.2.jar  说明
+context.default2  memcached-session-manager-1.9.2.jar      reflectasm-1.11.1.jar
+context.xml       memcached-session-manager-tc8-1.9.2.jar  spymemcached-2.11.1.jar
+
+# cp *.jar /usr/local/tomcat/lib/
+
+2.修改所有tomcat服务器配置文件，定义memcached的主机IP。
+# cd lnmp_soft/session/
+# ls
+asm-5.1.jar       kryo-3.0.3.jar                           minlog-1.3.0.jar               test.jsp
+context.default   kryo-serializers-0.34.jar                msm-kryo-serializer-1.9.2.jar  说明
+context.default2  memcached-session-manager-1.9.2.jar      reflectasm-1.11.1.jar
+context.xml       memcached-session-manager-tc8-1.9.2.jar  spymemcached-2.11.1.jar
+
+# cp context.xml /usr/local/tomcat/conf/
+覆盖
+
+3.重启所有tomcat,(nginx调度服务器已安装并运行memcached）
+# /ust/local/tomcat/bin/shutdown.sh
+# /usr/local/tomcat/bin/startup.sh
+
+4.客户端访问
+# firefox 192.168.4.5/test.jsp
+每次刷新访问不同的服务器页面，但显示的SessionID每次都相同。
+
+【常见问题】
+tomcat重启需要时间久
+# mv /dev/random /dev/random.bak
+# ln -s /dev/urandom /dev/random

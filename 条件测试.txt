@@ -1,0 +1,58 @@
+更新：202002171138
+测试环境：deepin15.11
+介绍：条件测试主要用于shell脚本。
+----------------------------
+【测试格式】
+格式1：[ 表达式 ]
+格式2：  test 表达式
+帮助：man test
+
+测试类型：
+1.字符
+相等，不等，是否为空。
+==      #等于
+!=      #不等于
+-z      #为空
+-n      #非空（相当于! -z）
+
+2.数字
+等于、不等于、大于、小于、大于等于、小于等于。
+-eq     #equal 等于
+-ne     #not equal 不等
+-gt     #greater then 大于
+-ge     #greater or equal 大于等于
+-lt     #less than 小于
+-le     #less or equal 小于等于
+案例：
+#!/bin/bash
+#功能：当登陆用户超过3个给root用户发邮件警报。
+num=`who | wc -l`
+[ $num -ge 3 ] && echo -e "登陆用户过多：\n`who`" > Warning.log
+[ $num -ge 3 ] && mail -s Warning root < Warning.log
+
+3.文件或目录
+-e      #文件或目录是否存在(exist)
+-f      #存在且为文件(file)
+-d      #存在且为目录(directory)
+-r      #可读(read)
+-w      #可写(write)
+-x      #可执行(exec)
+-s      #文件是否非空(size)
+案例：
+#!/bin/bash
+#功能：自动挂载CentOS系统镜像，需要先插入系统镜像。
+[ -d /media/usb1 ] || mkdir /media/usb1
+[ -f /media/usb1/GPL ] || mount /dev/cdrom /media/usb1
+
+【条件组合】
+A;B     执行A，执行B，“并”关系。
+A&&B    执行A，仅当A成功时执行B，“且”关系。
+A||B    执行A，仅当A失败时执行B，“或”关系。
+例如：
+[ $[1*1] == $[2-1] ] && echo yes || echo no
+yes
+判断1×1等于2-1是否执行成功，执行成功则执行echo yes，若没有执行echo yes则执行echo no。
+
+[ -z $USER ] && echo yes || echo no
+no
+判断$USER为空是否执行成功，执行成功则执行echo yes，若没有执行echo yes则执行echo no。

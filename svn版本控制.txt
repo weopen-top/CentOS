@@ -1,0 +1,206 @@
+日期：2020-06-03
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+---------------------------------------------------------
+【Subversion(svn)版本控制软件】
+作用：协同办公，多人协同编辑文件,节点保存。
+
+【安装subversion】
+# yum -y install subversion
+
+【创建共享仓库】
+1.新建存放仓库的目录，目录位置和名字自定义。
+# mkdir /var/svn
+
+2.创建版本仓库，仓库路径和名称自定义。
+# svnadmin create /var/svn/project1
+# ls /var/svn/
+project1
+
+【访问仓库方式】
+[Local file:///]：如果仓库在本地，svn支持本地访问。
+[SVN svn://]：如果仓库不在本地，可以搭建svnserve，用svn访问。
+[DAV http:// https://]：如果仓库不在本地，且不方便装subversion，可以在服务端搭建apache服务器，通过网页访问。
+
+【本地访问svn】
+1.导入文件到仓库
+# cd /usr/lib/systemd/system        #进入要上传给服务器的文件的目录。
+# svn import . file:///var/svn/project1 -m "first code"
+improt      导入
+.           当前目录下所有
+file://     本地
+-m          注释（必须加）
+
+2.列出仓库内容
+# svn list file:///var/svn/project1/
+
+【搭建svnserve服务器】
+
+# cd /var/svn/project1/conf
+# ls
+authz  passwd  svnserve.conf
+
+(注意：文件内容的行首不能有空格！)
+3.修改主配置文件
+# vim svnserve.conf
+ 19 anon-access = none          #匿名用户-连接 = 无权限（前面不能有空格）
+ 20 auth-access = write         #认证用户-连接 = 可读写（前面不能有空格）
+
+ 27 password-db = passwd        #密码文件 = passwd（存放用户和密码的文件）
+ 34 authz-db = authz            #访问控制文件 = authz
+
+4.修改密码配置文件
+# vim passwd
+[users]
+tom = 123456            #新建用户tom密码为123456
+jerry = 123456          #新建用户jerry密码为123456
+
+5.修改authz访问控制配置文件
+# vim authz
+...
+[groups]                    #用户组
+# admin = user1 user2       #admin组 = user1 user2（# 演示）
+
+[/]             #仓库的根目录
+tom = rw        #tom的权限为读写
+jerry = rw      #jerry的权限为读写
+* =             #其他人的权限为空
+# @admin = rw   #admin组的权限为读写（# 演示）
+
+6.启动服务
+# systemctl start svnserve          #把所有库都共享了，访问时需要绝对路径，不推荐
+
+# svnserve -d -r /var/svn/project1     #共享/var/vnc/project1，-r 根路径（root），--listen-port=port 自定义端口。
+
+# netstat -utpnl |grep svn              #确认服务是否开启
+tcp        0      0 0.0.0.0:3690            0.0.0.0:*               LISTEN      19714/svnserve      
+
+【远程用户访问svn】
+svn co下载：
+# svn co --username tom --password 123456 svn://192.168.2.100/ code
+co(checkout)下载代码
+--username用户名
+--password密码
+从svn://192.168.168.2.100/服务器下载
+把下载的代码存入code目录
+是否将密码保存到/root/.subversion/servers中，免登陆？
+# cd code;ls       #验证
+
+svn ci上传：
+vim修改一个下载的文件
+# svn ci -m "test modify"           #推送改动文件，上传到服务器了，ci(commit)提交 -m注释
+正在发送       upower.service
+传输文件数据.
+提交后的版本为 2。
+
+svn update更新：
+# svn update        #将服务器上其他人修改的代码更新到本地
+
+svn info信息：
+# svn info svn://192.168.2.100      @查看svn信息
+
+svn log日期：
+# svn log svn://192.168.2.100       #查看svn日志（记录）
+
+svn add添加：
+# echo "aaa" > new.txt      #在svn目录下创建新文件。
+# svn add new.txt           #添加新svn文件，默认不识别通过其他命令新建或删除的文件。（但识别修改过的文件）
+# svn ci -m "new file"      #将新添加svn文件上传服务器。
+
+svn del、svn remove、svn rm删除：
+# svn del new.txt           #删除svn文件，del、remove和rm都可以。
+# svn ci -m "del new.txt"   #将删除操作上传服务器
+
+svn mkdir、svn mv、svn cp等其他操作和svn rm雷同。可以用svn help查看。
+
+diff差异：
+# svn diff [文件]       #查看本地svn和服务器的差异。可以单独查看某一个文件。
+
+svn cat查看服务器文件
+# svn cat svn://192.168.2.100/new.txt       #查看服务器上的文本文件。
+
+【数据恢复】
+1.本地修改了，但未提交。
+# svn revert 文件名     #恢复已修改未上传文件
+
+2.本地rm删除数据
+# svn update            #恢复用非svn命令删除的文件
+
+3.本地已修改，且提交了。
+vim 文件          #修改文件
+svn ci -m "注释"  #提交修改到服务器
+
+如果这种文件少：
+# svn merge -r7:2 文件名           #将文件从版本7恢复到版本2
+
+如果这种文件多：
+# cd ..     #退出svn目录
+# svn -r 版本 co svn://192.168.2.100 新svn目录       #将要恢复版本的所有文件放入新svn目录。
+将新下载的svn目录里的内容拷贝到旧svn目录。
+
+【windows端访问】
+在Windows上访问svn可以使用TortoiseSVN软件
+
+【多人协同】
+SVN服务器：192.168.2.100
+TOM客户端：192.168.2.200
+jerry客户端：192.168.2.100（和svn服务器共用一台）
+
+在另一个客户端（2.100）用另一个用户（jerry）访问svn服务器。
+# svn co --username jerry --password 123456 svn://192.168.2.100/ code
+
+1.多人编辑不同的文件
+jerry:
+# echo "jerryjerry" >> upower.service       #jerry修改一个文件
+# svn ci -m "jerry edit"                    #jerry提交修改
+
+tom:
+# echo "tomtom" >> user.slice               #tom修改另一个文件
+# svn ci -m "tom edit"                      #tom提交修改
+
+tom和jerry同步更新：
+# svn update                                #不同人编辑不同文件更新即可保持一致。
+
+2.多人编辑相同文件的不同行
+jerry:
+# sed -i '2a jerryedit' vmtoolsd.service        #jerry修改vmtoolsd.service第2行行尾添加“jerryedit”。
+# svn ci -m "jerry edit"                        #提交给服务器，提交成功！
+
+tom:
+# sed -i '5a tomedit' vmtoolsd.service          #jerry修改vmtoolsd.service第5行行尾添加“tomedit”。
+# svn ci -m "tom edit"                          #提交给服务器，提交失败！版本过期！
+# svn update                                    #更新，tom和jerry更改的内容自动合并。
+# svn ci -m "tom edit"                          #提交成功！并升级了版本号！
+
+jerry：
+# svn update                                    #jerry需要重新更新新版本。
+
+3.多人编辑相同文件的相同行（有争议）
+jerry：
+# sed -i '1c [UNIT]' udisks2.service            #jerry觉得udisks.service的[Unit]应该全大写
+# svn ci -m "[UNIT]"                            #提交给服务器，提交成功！
+
+tom:
+# sed -i '1c [unit]' udisks2.service            #tom觉得udisks.service的[Unit]应该全小写
+# svn ci -m "[unit]"                            #提交给服务器，提交失败！版本过期！
+# svn update                                    #更新失败，发现冲突！p稍后解决！
+
+# ls |grep udisks2.service                      #查看udisks2.service文件
+udisks2.service                                 #tom和jerry修改的差异
+udisks2.service.mine                            #tom修改的
+udisks2.service.r7                              #tome和jerry未修改前的版本
+udisks2.service.r9                              #jerry修改的版本
+
+注意：冲突是需要人为协商的。
+# mv udisks2.service.r7 udisks2.service         #最后决定还是使用未修改前的版本，覆盖。
+# rm -rf udisks2.service.*                      #删除多余的文件
+# svn ci -m "妥协"                              #提交成功！并升级了版本号！
+
+jerry：
+# svn update                                    #jerry需要重新更新版本。
+
+【备份和还原】
+备份：
+# svnadmin dump /var/svn/project1/ > project1.bak       #将project1仓库备份为project1.bak
+
+还原：
+# svnadmin load /var/svn/project2/ < project1.bak       #将project1.bak备份还原到project2仓库，如果没有project2仓库则需要新建。

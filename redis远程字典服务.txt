@@ -1,0 +1,262 @@
+日期：2020-06-02 10:43
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+---------------------------------------------------------
+【memcached缺点】
+过于简单，只支持key=value
+数据会丢失！
+
+【redis特性】
+1.noSQL数据库，缓存数据库
+2.永久存数据
+3.除了key=value外，还支持其他数据类型
+4.加强版的memcache
+
+【redis支持的存储类型】
+1.key=value（字符串）
+2.hash表
+3.list表（优先新写入的数据，后来者居上）
+
+【安装redis】
+# cd lnmp_soft
+# tar -xf redis-3.0.6.tar.gz
+# cd redis-3.0.6/
+# gcc -v
+bash: gcc: 未找到命令...
+# yum -y install gcc        #如果没安装gcc，需要先安装gcc
+# make
+# make install
+
+# ./utils/install_server.sh      #初始化server，选项默认一路回车即可。
+
+【压力测试】
+# redis-benchmark 
+
+【客户端登陆测试】
+不区分大小写，支持Tab键
+# redis-cli
+127.0.0.1:6379> ping
+PONG
+127.0.0.1:6379> set test 12345 ex 5    #ex保存时间，nx只能新建，xx只能修改。不写，永久保存，可新建可修改。
+OK
+127.0.0.1:6379> get test            #5秒内查询
+"12345"
+127.0.0.1:6379> get test            #超过5秒查询
+(nil)
+
+127.0.0.1:6379> set test 12345abcde
+OK
+127.0.0.1:6379> get test
+"12345abcde"
+127.0.0.1:6379> SETRANGE test 5 'ABC'       #从第5位之后开始修改，修改内容为“ abcd ”
+(integer) 10
+127.0.0.1:6379> get test
+"12345ABCde"
+
+127.0.0.1:6379> STRLEN test                 #统计test变量字节长度
+(integer) 10
+
+127.0.0.1:6379> APPEND test 'fghijk'        #递增数据
+(integer) 16
+127.0.0.1:6379> get test
+"12345ABCdefghijk"
+
+127.0.0.1:6379> setbit user_login 100 1         #以比特位记录，第100位是1
+(integer) 0
+127.0.0.1:6379> setbit user_login 1000 1        #以比特位记录，第1000位是1
+(integer) 0
+127.0.0.1:6379> setbit user_login 10000 1       #以比特位记录，第10000位是1
+(integer) 0
+127.0.0.1:6379> BITCOUNT user_login             #查询user_login出现1的次数，适合做次数登记节省存储字节数。
+(integer) 3
+
+127.0.0.1:6379> set user 3     #写入变量user值为3
+OK
+127.0.0.1:6379> INCR user      #计数器：增加1次
+(integer) 4
+127.0.0.1:6379> INCRBY 2        #计数器：增加多次
+(integer) 6
+127.0.0.1:6379> DECR user      #计数器：减少1次，适合做点评、积分等。
+(integer) 5
+127.0.0.1:6379> DECRBY user 10  #计数器：减少多次，支持负数。
+(integer) -5
+127.0.0.1:6379> INCRBYFLOAT user 5.5        #计数器：增加小数次，不支持减少小数次。
+"0.5"
+
+【hash表】
+格式：
+hset 表 列 值     #写入 表名 列名 值为，有空格需要加引号。
+hmset 表 列1 值1 列2 值2 ... ...     #写入 表名 列名1 值1 列名2 值2 ... ...
+hgetall 表        #查看表所有数据
+hvals 表          #仅查看表所有的值
+hkeys 表          #仅查看表所有的列
+hget 表 列
+hmget 表 列1 列2
+
+示例：
+127.0.0.1:6379> HSET lily phone 13838838438         #lily的电话13838838438
+(integer) 1
+127.0.0.1:6379> HSET lily age 18                #lily的年龄18
+(integer) 1
+127.0.0.1:6379> HSET lily height 169cm          #lily的身高169cm
+(integer) 1
+127.0.0.1:6379> HMSET lily bust 95 waistline 70 hipline 96      #lily的胸围95 腰围70 臀围96
+OK
+127.0.0.1:6379> HGETALL lily            #查看lily所有值
+ 1) "phone"
+ 2) "13838838438"
+ 3) "age"
+ 4) "18"
+ 5) "height"
+ 6) "169cm"
+ 7) "bust"
+ 8) "95"
+ 9) "waistline"
+10) "70"
+11) "hipline"
+12) "96"
+
+【list表】
+127.0.0.1:6379> lpush list1 a               #为list1推一个值a，也可以一次推多个值。
+(integer) 1
+127.0.0.1:6379> lpush list1 b               #为list1推一个值b
+(integer) 2
+127.0.0.1:6379> lpush list1 c               #为list1推一个值c
+(integer) 3
+127.0.0.1:6379> LRANGE list1 0 -1           #从第0位开始取，到倒数第1位结束。
+1) "c"
+2) "b"
+3) "a"
+127.0.0.1:6379> LPOP list1                  #删除一个值，一次删一个最近的值
+"c"
+127.0.0.1:6379> LRANGE list1 0 -1
+1) "b"
+2) "a"
+127.0.0.1:6379> LINDEX list1 0              #查看list1的第0个值
+"b"
+【查看表或key】
+127.0.0.1:6379> keys *          #*查看所有的表，a*查看以a开头的表，支持通配符
+ 1) "user_login"
+ 2) "list1"
+ 3) "key:__rand_int__"
+ 4) "lily"
+ 5) "mylist"
+ 6) "counter:__rand_int__"
+ 7) "tom"
+ 8) "user"
+ 9) "a"
+10) "test"
+
+【删除表或key】
+127.0.0.1:6379> del a           #del删除表是将整张表删除。
+(integer) 1
+
+【设置过期时间】
+127.0.0.1:6379> EXPIRE tom 10   #设置tom表10秒后失效
+(integer) 1
+127.0.0.1:6379> TTL tom         #查看tom表剩余时间
+(integer) 5
+127.0.0.1:6379> TTL tom
+(integer) -2                    #-1代表永不过期，-2代表已过期
+
+127.0.0.1:6379> EXPIRE user 100 #设置user表100秒后过期
+(integer) 1
+127.0.0.1:6379> TTL user        #查看user表剩余存活时间
+(integer) 98
+127.0.0.1:6379> PERSIST user    #取消user过期时间，恢复永不过期。
+(integer) 1
+127.0.0.1:6379> TTL user
+(integer) -1
+
+【切换SELECT】
+127.0.0.1:6379> SELECT 1            #切换到SELECT 2,默认SELECT 0,最大支持SELECT 15。
+OK
+127.0.0.1:6379[1]> SELECT 2
+OK
+127.0.0.1:6379[2]> 
+
+127.0.0.1:6379> MOVE lily 2         #将lily表移动到SELECT 2中
+(integer) 1
+127.0.0.1:6379> get lily
+(nil)
+127.0.0.1:6379> SELECT 2
+OK
+127.0.0.1:6379[2]> hgetall lily
+ 1) "phone"
+ 2) "13838838438"
+ 3) "age"
+ 4) "18"
+...
+
+【清空数据库】
+127.0.0.1:6379[2]> FLUSHALL         #清除所有数据！！！火车票命令！！！
+
+【主从同步】
+[方案]
+主服务器IP为192.168.2.100
+从服务器IP为192.168.2.200
+主服务器认证密码为redis123
+测试主从数据是否正常通过
+
+[配置文件]
+# vim /etc/redis/6379.conf
+ 51 port 6379                               #默认端口6379
+109 logfile /var/log/redis_6379.log         #日志文件
+124 databases 16                            #默认dbid数量，相当于有16个SELECT（0-15）
+
+128 #Save the DB on disk:                   #保存数据到硬盘:
+130 #   save <seconds> <changes>            #保存 <时间> <改变key个数>，每60面监测一次，如果改变数量达到就保存数据到硬盘。
+
+183 dbfilename dump.rdb                     #保存数据库文件名
+193 dir /var/lib/redis/6379                 #保存数据库文件的目录
+
+197 # Master-Slave ...                      #主从同步
+211 # slaveof <masterip> <masterport>       #奴隶的 <主人IP> <主人端口>，既从服务器连接主服务器的IP和端口
+218 # masterauth <master-password>          #主服务器认证 <主服务器密码>
+
+397 # requirepass foobared                  #给服务器配一个密码，去掉注释
+
+[主服务器 操作步骤]
+1.修改配置文件397行requirepass参数，配置一个密码。
+# vim /etc/redis/6379.conf
+...
+requirepass 123456              #设置服务器密码为123456
+
+2.重启服务
+# /etc/init.d/redis_6379 restart
+Stopping ...
+Waiting for Redis to shutdown ...
+Redis stopped
+Starting Redis server...
+
+3.登陆redis测试
+# # redis-cli -p 6379 -a 123456         #-p端口号，-a密码
+127.0.0.1:6379> ping
+PONG
+
+4.给启动脚本增加密码(配置密码后，需要密码才能关闭服务）
+# vim /etc/init.d/redis_6379
+ 43             $CLIEXEC -a 123456 -p $REDISPORT shutdown           #CLIEXEC=/usr/local/bin/redis-cli
+
+# /etc/init.d/redis_6379 restart
+
+[从服务器 操作步骤]
+1.查看从服务器数据
+# redis-cli
+127.0.0.1:6379> keys *
+(empty list or set)         #从服务器目前没有任何数据。
+
+2.修改配置文件
+# vim /etc/redis/6379.conf
+211  slaveof 192.168.2.100 6379         #设置连接主服务器的IP和端口号
+218  masterauth 123456                  #设置连接主服务器的密码
+
+3.重启服务
+# /etc/init.d/redis_6379 restart
+
+4.验证
+# redis-cli
+127.0.0.1:6379> keys *
+1) "user"
+2) "mylist"
+3) "lily"
+4) "list1"

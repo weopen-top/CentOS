@@ -1,0 +1,9 @@
+更新：202002031312
+测试环境：deepin15.11
+概述：将|管道符前面的命令执行结果作为参数，交给|管道符后面的命令执行。
+----------------------------------------------------------
+例子：
+user@hostname:~$ cat /etc/passwd | grep root
+root:x:0:0:root:/root:/bin/bash
+nm-openvpn:x:113:118:NetworkManager OpenVPN,,,:/var/lib/openvpn/chroot:/bin/false
+

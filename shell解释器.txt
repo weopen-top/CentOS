@@ -1,0 +1,28 @@
+更新：20191207001
+环境：centos,deepin
+------------------
+【shell解释器】
+1.查看本机安装的shell：
+cat /etc/shells
+#可以用yum/apt/...等安装其他shell
+
+2.最常用的shell：
+/bin/bash
+
+3.查看默认登录shell：
+grep {用户名} /etc/passwd
+user:x:0:0:user:/home:/bin/bash
+
+4.临时切换shell：
+{解释器名称}
+#直接输入解释器名即可。
+#退出用exit
+
+5.特殊的shell：
+/sbin/nologin
+#不可登录shell，用户设置该默认shell将无法登录，可以编辑 /etc/nologin.txt 文本在nologin用户登录时告知。
+
+6.指定用户shell：
+useradd -s {shell完整路径}
+usermod -s {shell完整路径}
+#或修改/etc/passwd配置文件

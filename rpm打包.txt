@@ -1,0 +1,103 @@
+日期：2020-06-06 22:50
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+---------------------------------------------------------
+【RPM命令作用】
+rpm -ivh        #安装
+rpm -qa         #查所有
+rpm -ql         #软件文件列表
+rpm -e          #卸载
+rpm -qi         #查软件的信息
+rpm -ql         #查看rpm包内容
+
+【RPM是什么？】
+rpm本质是一个特定格式的压缩包
+
+【rpm包制作工具：rpm-build】
+# yum -y install rpm-build          #安装rpm-build
+# rpmbuild -ba nginx.spec           #生成一个rpmbuild加工目录，报错不影响。
+# ls /root/rpmbuild                 #查看rpmbuild目录，在家目录下。
+BUILD  BUILDROOT  RPMS  SOURCES  SPECS  SRPMS
+
+SOURCES存放源码包
+RPMS存放生成的rpm包
+SPECS存放配置文件
+SRPMS存放制作rpm包的文件，制作完rpm包会生成.src.rpm文件。将.src.rpm放入该目录就可以直接制作了。
+
+# cp nginx-1.19.0.tar.gz /root/rpmbuild/SOURCES/        #将nginx源码包放到/root/rpmbuild/SOURCES/
+# cd /root/rpmbuild/SPECS/                              #进入/root/rpmbuild/SPECS/目录下
+# vim nginx.spec                                        #编辑一个.spec结尾的文件，会自动有内容。
+Name:nginx                      #软件名
+Version:1.19.0                  #版本
+Release:1                       #第几次打包
+Summary:这是一个web服务器       #概述
+
+#Group:                         #属于哪个组包
+License:GPL                     #协议
+URL:www.nginx.org               #网址
+Source0:nginx-1.19.0.tar.gz     #源码包
+
+#BuildRequires:                 #依赖包提醒
+#Requires:                      #依赖包提醒
+
+%description
+详细信息.........
+
+%post                           #安装后脚本，非必须操作。
+useradd nginx
+
+%prep
+%setup -q                       #自动解压并cd
+
+%build
+./configure                     #源码安装配置，可以加参数
+make %{?_smp_mflags}
+
+%install
+make install DESTDIR=%{buildroot}       #虚拟根路径，实际安装在/root/rpmbuild/BUILDROOT/下。
+
+%files
+%doc
+/usr/local/nginx/*                      #打包内容（安装好的软件的文件）
+
+【生成rpm包】
+# rpmbuild -ba nginx.spec
+
+注意：编译前检查依赖包
+gcc             #用于编译安装
+pcre-devel      #正则表达式
+openssl-devel   #加密
+zlib-devel      #新版本的需要
+
+# ls /root/rpmbuild/RPMS/x86_64/        #查看制作好的rpm包
+nginx-1.19.0-1.x86_64.rpm  nginx-debuginfo-1.19.0-1.x86_64.rpm（错误信息）
+
+【安装自己做的rpm包】
+[root@Web1 x86_64]# rpm -ivh nginx-1.19.0-1.x86_64.rpm 
+准备中...                          ################################# [100%]
+正在升级/安装...
+   1:nginx-1.19.0-1                   ################################# [100%]
+
+# ls /usr/local/nginx/
+conf  html  logs  sbin
+
+# id nginx
+uid=1001(nginx) gid=1001(nginx) 组=1001(nginx)
+
+# rpm -qi nginx
+Name        : nginx
+Version     : 1.19.0
+Release     : 1
+Architecture: x86_64
+Install Date: 2020年06月07日 星期日 12时57分44秒
+Group       : Unspecified
+Size        : 765078
+License     : GPL
+Signature   : (none)
+Source RPM  : nginx-1.19.0-1.src.rpm
+Build Date  : 2020年06月07日 星期日 12时33分49秒
+Build Host  : Web1.local
+Relocations : (not relocatable)
+URL         : www.nginx.org
+Summary     : This is a web server
+Description :
+This is a web server.

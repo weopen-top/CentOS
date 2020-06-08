@@ -1,0 +1,20 @@
+更新：202002102220
+测试环境：deepin15.11
+-------------------
+介绍：有时候脚本交互密码或隐私信息希望被屏蔽，可以关闭回显功能。
+关闭回显功能：stty -echo
+打开回显功能（盲打）：stty echo
+
+例如：
+《变量》章节例子2的脚本，修改如下：
+#!/bin/bash
+
+read -p "请输入用户名：" user
+stty -echo
+read -p "请输入密码：" pass
+stty echo
+
+useradd $user
+echo $pass | passwd --stdin $user
+
+这样脚本在创建用户密码时就不会被看到。

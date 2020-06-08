@@ -1,0 +1,111 @@
+更新：202002111005
+测试环境：deepin15.11
+-------------------
+【变量类型】
+1.自定义变量
+2.系统自带变量。[环境变量，位置变量，预定义变量]
+3.全局变量
+4.局部变量
+
+【环境变量文件】
+全局文件：/etc/profile
+用户文件：~/.bash_profile（debian环境中是~/.profile）
+
+【定义临时变量】
+格式：变量名=值（中间不能有空格）
+变量名由字母、数字、下划线组成，但不能由数字打头。
+例如：
+user@hostname:~$ Aa_1=123
+
+【定义全局变量】
+命令：export
+解释：使用export指定变量为全局变量
+格式1：export 变量=变量值
+格式2：export 已定义的变量（可加多个，空格隔开）
+
+【调用变量】
+$变量名
+${变量名}
+例如：
+user@hostname:~$ echo $Aa_1
+123
+user@hostname:~$ echo ${Aa_1}45
+12345
+
+【系统变量】
+$PATH           命令的存放路径
+$HISTSIZE       历史命令条数
+$HISTFILESIZE   历史命令文件行数
+$USER           当前用户
+$PWD            当前路径
+$HOME           当前家目录
+$RANDOM         随机数
+
+$0  命令本身
+$1  第一个参数
+$2  第二个参数
+$3  第三个参数
+$#  所有参数的个数
+$*  列出所有参数
+$?  值为0前一个命令执行成功，非0则前一个命令执行失败。
+$$  当前进程的号
+$!  后台最后一个进程的进程号
+$@  表示所有参数
+
+【查看所有变量】
+set     查看所有变量
+env     查看所有环境变量
+
+【局部变量和全局变量】
+局部变量：只在当前进程有效，常用语脚本。
+例如：
+user@hostname:~$ a=11
+user@hostname:~$ bash（再开一个bash）
+user@hostname:~$ echo $a
+(无输出）
+
+全局变量：在所有进程都有效,常用于/etc/profile，使用export定义全局变量。
+例如：
+user@hostname:~$ export a=11
+user@hostname:~$ bash
+user@hostname:~$ echo $a
+11
+
+【read赋值】
+read -p "交互提示信息" 变量名
+例子1：
+[user@hostname ~]# read -p "请输入数字：" num
+请输入数字：88
+[user@hostname ~]# echo $num
+88
+
+例子2(centos7)：
+[user@hostname ~]# vim useradd.sh
+#!/bin/bash
+
+read -p "请输入用户名：" user
+read -p "请输入密码：" pass
+
+useradd $user
+echo $pass | passwd --stdin $user
+
+[user@hostname ~]# chmod +x useradd.sh
+[user@hostname ~]# ./useradd.sh
+请输入用户名：tom
+请输入密码：123456
+[user@hostname ~]# su tom
+[user@hostname ~]$ whoami
+tom
+
+例子2(debian):
+debian系linux不支持--stdin选项，需要改用chpasswd。
+user@hostname:~$ vim useradd.sh
+#!/bin/bash
+
+read -p "请输入用户名：" user
+read -p "请输入密码：" pass
+
+useradd $user
+echo $user:$pass | chpasswd
+
+user@hostname:~$ sudo ./useradd.sh

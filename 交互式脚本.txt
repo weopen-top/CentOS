@@ -1,0 +1,22 @@
+日期：2020-03-21 03；56
+环境：CentOS7.5
+----------------------
+例子：
+[root@centos7 ~]# vim test.sh
+#!/bin/bash
+mail -s Error root << EOF
+你家后院着火了！
+EOF
+echo "发送邮件成功"  
+
+【expect交互工具】
+装包：yum -y install expect
+[root@centos7 ~]# vim expect.sh
+#!/bin/bash
+expect <<EOF
+spawn ssh 192.168.56.1
+expect "password" send {"密码\r"}
+expect "#" {send "touch ./Desktop/new.txt\r"}
+expect "#" {send "exit\r"}
+EOF
+注意:非root登陆需要sudo，默认最后一行命令不执行。

@@ -1,0 +1,90 @@
+日期：2020-05-25 17:51
+环境：Red Hat Enterprise Linux Server release 7.2 (Maipo)
+--------------------------------------------------------
+【格式】
+    rewrite 旧地址 新地址 [选项]
+
+旧地址支持正则：
+~               匹配
+~*              模糊匹配
+!~              不匹配
+!~ uc           不匹配uc
+~* android      匹配Android
+()              复制，新地址栏粘贴用$n，而不是/n
+
+选项：
+redirect        地址栏变新的，临时充定向
+permament       地址栏变新的，永久充定向
+last            停止执行其他rewrite，防止多条rewrite死循环
+break           停止执行其他语句，结束访问
+
+【访问文件跳转】
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   html;
+            index  index.html index.htm;
+加          rewrite /a.html /b.html redirect;        #访问/a.html跳转/b.html，redirect选项地址栏显示新地址。
+        }
+    }
+...
+#nginx -s reload
+#echo "BBB" > /usr/local/nginx/html/b.html
+#firefox localhost/a.html
+地址栏：http://localhost/b.html
+BBB
+
+【访问地址跳转】
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+        rewrite ^/  https://www.baidu.com/;
+    }
+...
+#nginx -s reload
+#firefox localhost
+地址栏：https://www.baidu.com/
+
+【访问域名跳转】
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    server {
+        listen       80;
+        server_name  www.360buy.com;        #八卦：www.360buy.com是京东曾用域名
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+        rewrite ^/(.*)   https://www.jd.com/$1;
+    }
+...
+#nginx -s reload
+#firefox www.360buy.com/phone/nokia
+地址栏：https://www.jd.com/phone/nokia
+
+4.不同用户、设备、浏览器等访问相同的地址，跳转到不同的版式。
+#cd /usr/local/nginx/html
+#echo "normal page" > test.html
+
+#mkdir firefox
+#echo "page for firefox" > firefox/test.html
+
+#vim /usr/local/nginx/conf/nginx.conf
+...
+    if ($http_user_agent ~* firefox){
+        rewrite ^/(.*)  /firefox/$1;
+    }
+...
+#nginx -s reload
+
+#curl       http://192.168.4.5/test.html
+#firefox    http://192.168.4.5/test.html
