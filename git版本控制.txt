@@ -8,11 +8,11 @@ $ sudo apt install git
 $ git clone https://github.com/weopen-top/CentOS/
 
 【保存密码】
-$ vim ~/.git-credentials
-http(s)://{你的用户名}:{你的密码}@你的服务器地址
-
 $ git config --global credential.helper store
-$ cat ~/.gitconfig
+$ vim ~/.gitconfig
+[user]
+	name = weopen-top
+	email = 752626325@qq.com
 [credential]
 	helper = store
 
