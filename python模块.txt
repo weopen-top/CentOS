@@ -13,9 +13,14 @@ function 函数名{
 #!/usr/bin/python
 #coding:utf-8
 
+'''这是一个模块
+    主要是测使用'''             #添加帮助信息
+
 Hi="Hello world!"               #定一个变量Hi
 
 def star():                     #定一个函数star
+    '''这是一个函数
+    这个函数是打印星星'''   #添加帮助信息
     print "*"*20                #输出20个*
     print "OK"                  #输出OK
 
@@ -36,3 +41,24 @@ OK
 OK
 >>> mystar.Hi                   #调用mystar模块的Hi变量
 'Hello world!'
+
+>>> help(mystar)                #查看帮助信息
+Help on module mystar:
+
+NAME
+    mystar
+
+FILE
+    /root/mystar.py
+
+DESCRIPTION
+    这是一个模块
+    主要是测试使用
+
+FUNCTIONS
+    star()
+        这是一个函数
+        这个函数是打印星星
+
+DATA
+    Hi = 'Hello world!'

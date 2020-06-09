@@ -1,0 +1,103 @@
+日期：2020-06-10 01:33
+环境：python 2.7.5
+----------------------
+【if单分支】
+shell if判断回顾：
+if [ 判断 ]；then
+    命令
+fi
+
+python if判断：
+if 判断:
+    命令
+（没有tab缩进时，if执行语句结束）
+
+>>> if 10:                  #只要表达式数字为非零值即为True
+...     print 'yes'
+... 
+yes
+
+【if双分支】
+shell if判断回顾：
+if [ 判断 ];then
+    命令
+else
+    命令
+fi
+
+python if判断：
+if 判断:
+    命令
+else:
+    命令
+（没有tab缩进时，if执行语句结束）
+
+>>> if "":                  #空字符串、空列表、空元组、空字典的值均为False
+...     print 'yes'
+... else:
+...     print 'no'
+... 
+no
+
+[猜数字脚本演示]
+# vim caishuzi.py                   #编辑一个脚本（名字不能为调用模块random）
+#!/usr/bin/python
+#coding:utf-8
+import random                       #调用random随机数模块
+num1=random.randint(1,10)           #定义num1变量为一个1-10的随机数
+cai=raw_input("请猜一个数字：")     #定义cai变量为输入的字符串
+num2=int(cai)                       #定义num2为数值cai
+if num1 == num2:
+    print '恭喜您！猜对了！'
+else:
+    print '您猜错了，答案是',num1
+
+
+【if多分支】
+shell if判断回顾：
+if [ 判断 ];then
+    命令
+elif [判断 ];then
+    命令
+else
+    命令
+fi
+
+python if判断：
+if 判断:
+    命令
+elif 判断:
+    命令
+else:
+    命令
+（没有tab缩进时，if执行语句结束）
+
+[猜大小脚本演示]
+# vim caidaxiao.py                  #编辑一个脚本（名字不能为调用模块random）
+#!/usr/bin/python
+#coding:utf-8
+import random                       #调用random随机数模块
+num1=random.randint(1,100)          #定义num1变量为一个1-100的随机数
+cai=raw_input("请猜一个数字：")     #定义cai变量为输入的字符串
+num2=int(cai)                       #定义num2为数值cai
+if num2>100 or num2<1:
+    print '请输入1-100内的数字'
+elif num1 == num2:
+    print '恭喜您！猜对了！'
+    quit()
+elif num1 > num2:
+    print '您猜小了，答案是',num1
+else:
+    print '您猜大了，答案是',num1
+
+[登陆脚本演示]
+如果用户名为tom，密码为123456,则登陆成功，否则登陆失败。
+# vim denglu.py
+#!/usr/bin/python
+#coding:utf-8
+user=raw_input("请输入用户名：")
+passwd=raw_input("请输入密码：")
+if user == "tom" and passwd == '123456':            #注意字符串要加引号，单双引都可以。
+        print '登陆成功'
+else:
+        print '登陆失败'

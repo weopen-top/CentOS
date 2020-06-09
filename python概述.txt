@@ -54,7 +54,7 @@ hello
 >>> print 'hello'                       #单引号屏蔽特殊符号
 hello
 
->>> print '''hello                      #三单引号可以换行回车，屏蔽特殊符号
+>>> print '''hello                      #三单引号可以换行回车，屏蔽特殊符号,添加帮助文档。
 ... nihao'''
 hello
 nihao
