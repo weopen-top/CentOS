@@ -1,0 +1,26 @@
+日期：2020-06-12 01:55
+环境：python 2.7.5
+----------------------
+【参数新概念】
+形式参数，实际参数，默认参数，位置参数
+
+【参数实例】
+def jisuan(x=5,y=10):            #(x,y)为形式参数。(x=5,y=10)为定义默认参数。
+    print "%d+%d="%(x,y),x+y
+    print "%d-%d="%(x,y),x-y
+    print "%d*%d="%(x,y),x*y
+    print "%d/%d="%(x,y),x/y
+
+jisuan(3,6)                 #3,6实际参数,3=x,6=y。
+jisuan()                    #默认参数
+
+【位置参数】
+#!/usr/bin/python
+#coding:utf-8
+
+import sys                  #调用sys模块
+
+print sys.argv[0]           #调用sys模块argv列表变量，0位即脚本本身
+print sys.argv[1]           #1位即第1个参数
+print sys.argv[2]           #2位即第2个参数
+...                         #以此类推

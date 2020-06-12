@@ -1,0 +1,180 @@
+日期：2020-06-10 15:32
+环境：python 2.7.5
+-----------------------
+【while循环】
+shell while循环回顾：
+while 判断
+do
+    命令
+done
+
+python while循环：
+while 判断:
+    命令
+（没有tab缩进时，while执行语句结束）
+
+[递加脚本演示]
+#!/usr/bin/python
+#coding:utf-8
+i=1
+num1=0
+shuru=raw_input("请输入一个数字：")
+num2=int(shuru)
+
+while i <= num2:
+        num1+=i
+        i+=1
+print num1
+
+【while死循环】
+shell while死循环回顾：
+while :
+do
+    命令
+done
+
+python while死循环
+while True:
+    命令
+（没有tab缩进时，while执行语句结束）
+
+[猜大小脚本演示]
+#!/usr/bin/python
+#coding:utf-8
+import random
+num1=random.randint(1,10)
+
+while True:
+        cai=raw_input("请猜一个数字：")
+        num2=int(cai)
+        if num2>10 or num2<1:
+                print '请输入1-10内的数字'
+        elif num1 == num2:
+                print '恭喜您！猜对了！'
+                quit()
+        elif num1 > num2:
+                print '您猜小了'
+        else:
+                print '您猜大了'
+
+【continue，bread】
+continue：结束本次循环，调入下一次循环。
+break：结束整个循环体
+
+[猜你爱的人脚本演示]
+#!/usr/bin/python
+#coding:utf-8
+while True:
+        name=raw_input("你爱的人是谁：")
+        if name == '罗玉凤':
+                print '答对了'
+                break
+        else:
+                print '答错了'
+
+while本身包含判断，所以可以优化：
+#!/usr/bin/python
+#coding:utf-8
+name=raw_input("你爱的人是谁：")
+while name!='罗玉凤':
+        print '答错了'
+        name=raw_input("你爱的人是谁：")
+print '答对了'
+
+【while的else语句】没啥卵用，没有else也可以执行。
+和shell不同，python的while语句也可以用else。
+while 判断:           #当判断为真，循环命令
+    命令
+else：                #当判断为假，执行命令（不循环）
+    命令
+
+【for循环】
+shell for循环回顾：
+for 变量 in 变量值
+do
+    命令
+done
+
+python for循环：
+for 变量 in 字串，列表，文件，range（n）：
+    命令
+（没有tab缩进时，while执行语句结束）
+
+【for循环变量值】
+shell for循环变量值：
+值1 值2 值3 ...
+{1..10}
+`seq 10`
+`ls *.conf`
+`cat user.txt`
+
+python for循环变量值：
+1.可以对一个变量循环
+>>> x='abc,123'
+>>> for i in x:
+...     print i
+... 
+a
+b
+c
+,
+1
+2
+3
+
+>>> x=['abc','123']
+>>> for i in x:
+...     print i
+... 
+abc
+123
+
+2.可以用range生成一串数字列表（类似seq）
+>>> range(1,5)          #从1开始取到4结束组成列表，不包含5。
+[1, 2, 3, 4]
+
+>>> range(1,10,2)       #从1开始每2位取一位取到9结束组成列表。
+[1, 3, 5, 7, 9]
+
+>>> xrange(1,10)        #xrange和range功能一样，区别是range立即取，比较占用硬件资源。xrange使用时再取，节省了内存占用。
+xrange(1, 10)
+
+>>> for i in xrange(1,5):
+...     print '星期',i
+... 
+星期 1
+星期 2
+星期 3
+星期 4
+
+[斐波那契数列计算脚本]
+0 1打头，从第三位开始每个数字都等于前两个数之和
+0 1 1 2 3 5 8 13....
+
+# vim rabbit.py
+#!/usr/bin/python
+#coding:utf-8
+
+day=raw_input("请输入斐波那契数列长度：")
+num=int(day)
+rabbit=[0,1]
+
+for i in xrange(num-2):
+    x=rabbit[-1]+rabbit[-2]
+    rabbit.append(x)
+print rabbit
+
+3.可以对文件内容循环
+具体参见《python编辑文件》的“【拷贝】”
+
+【for循环生成列表】
+格式：
+[表达式 for i in 值]
+
+>>> [i for i in range(8)]
+[0, 1, 2, 3, 4, 5, 6, 7]
+>>> [i*10 for i in range(8)]
+[0, 10, 20, 30, 40, 50, 60, 70]
+
+生成一个网段所有IP的列表：
+>>> ['192.168.31.%d'%i for i in range(1,255)]

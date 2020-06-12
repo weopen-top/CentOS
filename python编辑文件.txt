@@ -1,0 +1,67 @@
+日期：2020-06-11 01:05
+环境：python 2.7.5
+----------------------
+【读写文件】
+shell回顾：
+cat a.txt
+sed -n '18p' a.txt
+
+echo "xxx" >> a.txt
+vim a.txt
+
+python：
+open('文件',权限)
+r       #以读方式打开（文件不存在则报错）
+w       #以写方式打开（文件存在则清空！不存在则创建）
+a       #以追加模式打开（必要时创建新文件）
+r+      #以读写模式打开（参见r）
+w+      #以读写模式打开（参见w！）
+a+      #以读写模式打开（参见a）
+
+读文件：
+>>> open('/etc/hosts')                  #不写权限默认为r
+<open file '/etc/hosts', mode 'r' at 0x7f157bb4f6f0>        #文件已经读取至内存
+
+>>> myhosts=open('/etc/hosts')          #将读取到内存内容赋值到变量myhosts。
+
+>>> myhosts.readline()                  #readline读取模块，()内不写字节数表示整行。
+'127.0.0.1   localhost'
+
+>>> myhosts.read()                      #read读取剩余模块，()内不写字节数表示剩余全部。
+'::1         localhost'
+
+>>> myhosts.read()                      #光标已到最底，无法显示更多内容。
+''
+>>> myhosts.seek(0)                     #seek模块定义光标位置，()内表示字节。
+>>> myhosts.read()                      #read再次读取，可以显示。
+'127.0.0.1   localhost ::1         localhost'
+
+写文件：
+>>> data=open('/root/new.txt','w')      #新建文件/root/new.txt
+>>> data.writelines("abcde\n")          #将‘abcde回车’写入date缓存，writelines写入序列
+>>> data.write("ABCDE")                 #write写入一个字符串
+>>> data.flush()                        #保存不退出
+>>> data.close()                        #保存并退出
+
+【将文件赋值到变量】
+>>> data=open('/etc/hosts')
+>>> for i in data:
+...     print i
+... 
+127.0.0.1   localhost
+
+::1         localhost
+
+【拷贝】
+#!/usr/bin/python
+#coding:utf-8
+import sys
+f1=sys.argv[1]
+f2=sys.argv[2]
+
+data1=open(f1)
+data2=open(f2,'w')
+for i in data1:
+    data2.writelines(i)
+data1.close()
+data2.close()

@@ -1,39 +1,29 @@
-日期：2020-06-08 23:12
-环境：python
+日期：2020-06-12 01:57
+环境：python 2.7.5
 ----------------------
-【shell函数回顾】
-function 函数名{
-}
+【模块】
+一个完整的py脚本就是一个模块
+模块PATH路径：/usr/lib64/python-2.7/
+【模块格式】
+import  模块名,模块名,..        #导入模块，模块名称为脚本名不加后缀
+模块名称.变量                   #调用模块的变量
+模块名称.函数()                 #调用模块的函数
 
-函数名(){
-}
+from 模块名称 import 变量/函数  #导入模块的某个变量或函数
+变量                            #调用变量
+函数()                          #调用函数
 
-【python函数】
-# vim mystar.py                 #编辑一个python脚本
-#!/usr/bin/python
-#coding:utf-8
+【常用模块】
+random.randint(0,100)           #0-100的随机数
+random.choice()                 #参数内随机，可以是变量、字符串
+string.letters                  #所有的大小写字母（a-z,A-Z)
+string.digits                   #所有的数字（0-9）
+range(n)                        #生成数列
 
-'''这是一个模块
-    主要是测使用'''             #添加帮助信息
-
-Hi="Hello world!"               #定一个变量Hi
-
-def star():                     #定一个函数star
-    '''这是一个函数
-    这个函数是打印星星'''   #添加帮助信息
-    print "*"*20                #输出20个*
-    print "OK"                  #输出OK
-
-star()                          #执行star函数，前面不能有tab键（仅作演示，一般模块不写这行）
-
-# chmod +x mystart.py           #给脚本赋予执行权限
-# ./mystar.py                   #执行脚本
-********************
-OK
-
-【导入模块】
+【模块演示】
+引用《python函数》笔记的mystar.py脚本
 # python                        #打开python解释器
->>>import mystar                #导入mystar模块，一个脚本就是一个模块，不需要输.py后缀名
+>>>import mystar                #导入mystar模块，导入不需要输.py后缀名。
 ********************
 OK
 >>> mystar.star()               #调用mystar模块的star函数
@@ -62,3 +52,16 @@ FUNCTIONS
 
 DATA
     Hi = 'Hello world!'
+
+[生成你随机密码]
+#!/usr/bin/python
+#coding:utf-8
+
+import random,string
+zifu=string.letters+string.digits
+
+passwd=''
+for i in range(8):
+    passwd=passwd+random.choice(zifu)
+
+print passwd
