@@ -1,0 +1,79 @@
+日期：2020-06-15 00:41
+环境：python 2.7.5
+----------------------
+【常见异常】
+NameError           #未声明/初始化对象（参数错）
+IndexError          #序列中没有此索引（列表错）
+SyntaxError         #语法错误（命令错）
+KeyboardInterrupt   #用户中断执行（Ctrl+C）
+EOFError            #没有内建输入，到达EOF标记（Ctrl+D）
+IOError             #输入/输出操作失败（文件未找到）
+ValueError          #值错误
+ZeroDivisionError   #值不能为0
+AssertionError      #自定义错误
+
+【try-except自定义错误提示】
+try:                            #尝试执行
+    命令
+except 异常1:
+    print 提示信息
+except 异常2,erro:              #将异常2的报错信息保存到自定义变量error
+    print 提示信息,erro         #将异常2的报错信息也一并打印
+except:
+    print 提示信息
+else:                           #如果不报错，可有可无。
+    print "OK"
+finally:                        #不管报错否，都执行。
+    print "反正程序结束了"
+
+[脚本演示]
+#!/usr/bin/python
+#coding:utf-8
+
+try:
+    ab=int(raw_input("请输入数字"))
+    print 3/ab
+
+except KeyboardInterrupt:
+    print "中断了"
+except ValueError
+    print "输入的不是数字"
+except ZeroDivisionError:
+    print "输入的不能是0"
+except:
+    print "运行出错"
+
+【with语句】
+with主要用于防止打开文件异常关闭。
+
+>>>with open('/etc/hosts') as abc:
+...     abc.readlines()
+...     abc.readlines()
+... （不加tab文件自动关闭）
+>>> abc.closed              #查看文件是否关闭
+... True
+
+【raise自定义错误内容】
+#!/usr/bin/python
+#coding:utf-8
+
+abc=int(raw_input("请输入1-10："))
+
+try:
+    if abc>10 or ab<1:                               #当if判断为真则：
+        raise ValueError,"您输入的值超出范围"        #自定义ValueError报错内容。
+
+except ValueError,error:            #将ValueError报错内容保存到error变量。
+    print "报错：",error            #打印提示信息及报错内容。
+
+【assert自定义错误】
+#!/usr/bin/python
+#coding:utf-8
+
+abc=int(raw_input("请输入1-10："))
+
+try:
+    assert 1<=abc<=10,'您输入的值超出范围'      #当assert判断为假时报错。
+
+except AssertionError,error                     #将AssertionError报错内容保存到error变量。
+    print "报错：",error                        #打印提示信息及报错内容。

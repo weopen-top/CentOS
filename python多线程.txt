@@ -1,0 +1,45 @@
+日期：2020-06-17 06:52
+环境：python 2.7.5
+-----------------------
+多进程，不共享内存，资源消耗大
+多线程，共享内存，资源消耗小
+
+【subprocess调用shell命令模块】
+>>> import subprocess
+>>> subprocess.call('shell命令',shell=True)
+
+【threading.Thread()多线程】
+[ping多线程测试脚本]
+#!/usr/bin/python
+#coding:utf-8
+import subprocess
+import threading
+
+def myping(ip):
+    ping = subprocess.call('ping -c4 -i0.1 %s &>/dev/null'%ip,shell=True)
+    if ping == 0:
+        print '%s is up'%ip
+    else:
+        print '%s is down'%ip
+
+net = ['192.168.1.%s'%i for i in range(1,255)]
+for i in net:
+    a = threading.Thread(target=myping,args=[i])
+    a.start()
+
+【非交互脚本】
+使用paramiko自动远程其他主机
+需要安装模块：
+libtomcrypt-1.17-23.el7.x86_64.rpm      python2-ecdsa-0.13-4.el7.noarch.rpm
+libtommath-0.42.0-4.el7.x86_64.rpm      python2-paramiko-1.16.1-2.el7.noarch.rpm
+python2-crypto-2.6.1-13.el7.x86_64.rpm
+
+#!/usr/bin/python
+import paramiko
+host='192.168.4.5'
+ssh = paramiko.SSHClient()          #启动一个ssh软件
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())       #自动导入公钥
+ssh.connect(host, username='root', password='redhat')       #连接主机，输入账号密码
+stdin, stdout, stderr = ssh.exec_command('ls /')
+print stdout.read()
+print stderr.read()

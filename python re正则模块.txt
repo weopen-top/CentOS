@@ -1,0 +1,161 @@
+日期：2020-06-15 19:31
+环境：python 2.7.5
+----------------------
+import re       #首先要添加正则模块
+
+【re.match查找函数】
+re.match匹配查找的内容，但只匹配首个到内存。
+>>> re.match('the','the beautifull girl')       #查看语句里是否有the
+<_sre.SRE_Match object at 0x7f6df5831718>       #找到了在内存中
+>>> re.match('boy','the beautifull girl')       #没反应就没有找到
+>>> re.match('girl','the beautifull girl')      #match只从头开始找
+
+[查找脚本]
+#!/usr/bin/python
+#coding:utf-8
+
+import re
+data=open('/etc/passwd')
+for i in data:
+    re.match('root',i)
+
+【group返回函数】
+（从内存中）返回一个或多个匹配的字串。如果只有一个参数，结果只有单个字符串；如果有多个参数，结果是一个元组，元组里每一项对应一个参数。
+
+>>> myfind=re.match('the','the beautifull girl')    #将找到的内容保存到myfind变量
+>>> myfind.group()                                  #显示匹配的结果
+'the'
+
+【re.search查找函数】
+re.search可以匹配任意位置查找内容,但仅匹配一个到内存。
+
+>>> re.search('girl','the beautifull girl')
+<_sre.SRE_Match object at 0x7f6de9b6bbf8>            #找到了在内存中
+
+>>> myfind=re.search('girl','the beautifull girl')   #将找到的内容保存到myfind变量
+>>> myfind.group()                                   #显示匹配的结果
+'girl'
+
+【re.findall查找】
+re.findall可以查找所有匹配内容,直接出结果，不需要group()。
+
+>>> myfind=re.findall('girl','the girl,beatiful girl,lovely girl')
+>>> myfind
+['girl', 'girl', 'girl']
+
+【re.finditer查找函数】
+re.finditer可以查找所有匹配内容，但只保存在内存中，需要 group()。
+
+>>> myfind=re.finditer('girl','ugly girl,beatiful girl,lovely girl')
+>>> for i in myfind:
+...     print i.group()
+...
+girl
+girl
+girl
+
+【re.compile编译函数】
+对正则表达式进行编译（二进制计算），提高执行效率，适合做大量匹配时使用。
+
+>>> find=re.compile('girl')            #将要找的字串转换成二进制保存到变量
+>>> myfind=find.finditer('girl,beatiful girl,lovely girl')
+>>> for i in myfind:
+...     print i.group()
+... 
+girl
+girl
+girl
+
+【re.split分隔函数】
+根据正则表达式中的分隔符把字符串分割为一个列表，并返回成功匹配的列表。
+
+>>> list=re.split('\.|-','height-weight.age')
+>>> print list
+['height', 'weight', 'age']
+
+【re.sub替换函数】
+变量=re.sub('旧','新','内容')
+
+>>> mysub=re.sub('19','20','2019\n依然爱你')
+>>> print mysub
+2020
+依然爱你
+
+【正则匹配单个字符】
+.                   #匹配任意字符（换行符除外）
+[...x-y...]         #匹配字符组里的任意字符
+[^...x-y...]        #匹配不在字符组里的任意字符
+\d                  #匹配任意数字，与[0-9]同义
+\w                  #匹配任意数字字母字符，与[0-9a-zA-Z]同义
+\s                  #匹配空白字符，与[\r\v\f\t\n]同义
+
+【正则匹配一组字符】
+|字符串|            #匹配字符串的值
+字串1|字串2         #匹配正则表达式字串1或字串2
+*                   #匹配前面出现的正则表达式零次或多次
++                   #匹配前面出现的正则表达式一次或多次
+?                   #匹配前面出现的正则表达式零次或一次，取消贪婪匹配。
+{M，N}              #匹配前面出现的正则表达式至少M次最多N次
+
+【其他元字符】
+^                   #匹配字符串的开始
+&                   #匹配字符串的结尾
+\b                  #匹配单词的边界
+()                  #对正则表达式分组
+\nn                 #匹配已保存的子组
+
+【贪婪匹配】
+*、+和?都是贪婪匹配操作符，在其后加上?可以取消其贪婪匹配行为。
+正则表达式匹配对象通过groups函数获取子组
+
+>>> data='my phone is : 1555533333'
+>>> ph=re.search('.+(\d+)',data)
+>>> ph
+<_sre.SRE_Match object at 0x7f80d1ce5210>
+>>> ph.groups()
+('3',)
+
+>>> ph=re.search('.+?(\d+)',data)
+>>> ph
+<_sre.SRE_Match object at 0x7f80d1ce5288>
+>>> ph.groups()
+('1555533333',)
+
+【get()函数】
+get可以查询字典，如果字典没有也不报错。可以方便写脚本。
+
+>>> Tom={'height':180,'weight':65,'age':18}
+>>> Tom.get('age','name')
+18                              #没有'name'但也不会报错。
+
+【统计阿帕奇日志】
+每个人访问我的次数           #防止攻击
+每种浏览器访问我的次数       #分析用户
+每个页面被访问的次数         #分析产品
+
+# vim access_log                #模拟一个阿帕奇日志
+192.168.4.5 /a.html
+192.168.3.5 /a.html
+192.168.2.5 /a.html
+192.168.1.5 /b.html
+192.168.2.5 /b.html
+192.168.3.5 /c.html
+::1 /a.html
+
+# vim access_log.py
+#!/usr/bin/python
+#coding:utf-8
+
+import re
+data=open('access_log')
+dic={}
+
+for i in data:
+    xx=re.search('(\d+\.){3}\d+',i)
+    if xx:
+        ip=xx.group()
+        dic[ip]=dic.get(ip,0)+1
+print dic
+
+# # ./access_log.py 
+{'192.168.3.5': 2, '192.168.1.5': 1, '192.168.4.5': 1, '192.168.2.5': 2}
