@@ -1,0 +1,182 @@
+日期：2020-06-22 04:31
+环境：mysql 5.7.17
+------------------------
+【常见的信息种类】
+数值型：体重、身高、成绩、工资
+字符型：姓名、工作单位、通讯地址
+枚举型：兴趣爱好、性别
+日期时间型：出生日期、注册时间
+
+【数值类型】
+整型（整数）
+浮点型（小数）
+    单精度 float 2^32
+    双精度 double 单精度的2倍
+
+类型        大小     范围（有符号）   范围（无符号）   用途
+TINYINT     1字节    -128～127        0～255           微小整数
+SMALLINT    2字节    -32768～32767    0～65535         小整数
+MEDIUMINT   3字节    -2^23～-2^23-1   0～2^24-1        中整数
+INT         4字节    -2^31～2^31-1    0～2^32-1        大整数
+BIGINT      8字节    -2^63～2^63-1    0～2^64-1        极大整数
+FLOAT       4字节                                      单精度浮点数
+DOUBLE      8字节                                      双精度浮点数
+DECIMAL     对DECIMAL(M,D)，其中M为有效位数、D为小数位数，M应大于D，占用M+2字节（DECIMAL代指浮点型）
+
+UNSIGNED        #无符号（即非负数），不加默认支持负数
+ZEROFILL        #0代替空格补位
+
+演示：
+mysql> create database db1;                 #创建db1库
+Query OK, 1 row affected (0.00 sec)
+
+mysql> use db1;                             #切换位置到db1库
+Database changed
+mysql> create table t1(                     #在db1库创建t1表
+    -> age tinyint unsigned,                #年龄为微小正整数
+    -> pay float(7,2)                       #工资最高为99999.99
+    -> );
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> desc t1;                             #查看t1表
++-------+---------------------+------+-----+---------+-------+
+| Field | Type                | Null | Key | Default | Extra |
++-------+---------------------+------+-----+---------+-------+
+| age   | tinyint(3) unsigned | YES  |     | NULL    |       |
+| pay   | float(7,2)          | YES  |     | NULL    |       |
++-------+---------------------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+mysql> insert into t1 values(18.56,12000);     #插入字段 年龄18.56,工资12000
+Query OK, 1 row affected (0.03 sec)
+
+mysql> select * from t1;
++------+----------+
+| age  | pay      |
++------+----------+
+|   19 | 12000.00 |                            #整数类型时会四舍五入小数位，浮点类型会补齐小数位。
++------+----------+
+1 row in set (0.00 sec)
+
+【字符类型】字符值需要引号引起来
+定长：char(字符数)
+    最大长度255字符
+    不够指定字符时在右边用空格补齐
+    字符数断超出时，无法写入数据
+变长：varchar（字符数）
+    最大长度65352字符
+    按数据实际大小分配存储空间
+    字符数断超出时，无法写入数据
+大文本类型：text/blob
+    字符数大于65535存储时使用
+
+演示：
+mysql> create table db1.t2(                 #在db1库下创建t2表
+    -> name char(4),                        #姓名字符类型为定长char
+    -> homedir varchar(20),                 #家庭住址字符类型为变长varcha
+    -> email varchar(30)                    #电子邮箱字符类型为变长varcha
+    -> );
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> desc db1.t2;                         #查看表结构
++---------+-------------+------+-----+---------+-------+
+| Field   | Type        | Null | Key | Default | Extra |
++---------+-------------+------+-----+---------+-------+
+| name    | char(4)     | YES  |     | NULL    |       |
+| homedir | varchar(20) | YES  |     | NULL    |       |
+| email   | varchar(30) | YES  |     | NULL    |       |
++---------+-------------+------+-----+---------+-------+
+3 rows in set (0.01 sec)
+
+mysql> insert into db1.t2 values("tom","hangzhou","tom.qq.com");    #插入表记录
+Query OK, 1 row affected (0.03 sec)
+
+mysql> select * from db1.t2;                #查看表记录
++------+----------+------------+
+| name | homedir  | email      |
++------+----------+------------+
+| tom  | hangzhou | tom.qq.com |
++------+----------+------------+
+1 row in set (0.00 sec)
+
+【日期时间类型】
+DATETIME
+    yyyymmddHHMMSS
+    占用8个字节
+    范围：1000-01-01 00:00:00.000000～9999-12-31 23:59:59.999999
+TIMESTAMP
+    yyyymmddHHMMSS
+    占用4个字节
+    范围：1970-01-01 00:00:00.000000～2038-01-19 03:14:07.999999
+DATE
+    yyyymmdd
+    占用4个字节
+    范围：0001-01-01～9999-12-31
+YEAR
+    yyyy
+    占用1个字节
+    范围：1901～2155
+TIME
+    HHMMSS
+    占用3个字节
+    格式：HH:MM:SS
+
+演示：
+mysql> create table db1.t3(
+name char(10),
+birthday date,
+graduation year,
+upwork time,
+party timestamp
+);
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> desc db1.t3;
++------------+-----------+------+-----+-------------------+-----------------------------+
+| Field      | Type      | Null | Key | Default           | Extra                       |
++------------+-----------+------+-----+-------------------+-----------------------------+
+| name       | char(10)  | YES  |     | NULL              |                             |
+| birthday   | date      | YES  |     | NULL              |                             |
+| graduation | year(4)   | YES  |     | NULL              |                             |
+| upwork     | time      | YES  |     | NULL              |                             |
+| party      | timestamp | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
++------------+-----------+------+-----+-------------------+-----------------------------+
+5 rows in set (0.00 sec)
+
+mysql> insert into db1.t3 values("marry",19980506,2016,090000,20200506203000);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from db1.t3;
++-------+------------+------------+----------+---------------------+
+| name  | birthday   | graduation | upwork   | party               |
++-------+------------+------------+----------+---------------------+
+| marry | 1998-05-06 |       2016 | 09:00:00 | 2020-05-06 20:30:00 |
++-------+------------+------------+----------+---------------------+
+1 row in set (0.00 sec)
+
+【时间函数】
+now()               #获取调用此函数时的系统日期时间
+sysdate()           #执行时动态获得系统日期时间
+sleep(N)            #休眠N秒
+curdate()           #获取当前系统日期
+curtime()           #获取当前系统时刻
+year()              #获取指定实践中的年份
+month()             #获取指定时间中的月份
+date()              #获取指定时间中的日期
+time()              #获取指定实践中的时刻
+
+mysql> select now();            #获取当前时间
+mysql> select time(now())       #获取当前时间的时刻
+
+演示：
+mysql> insert into db1.t3 values("tom",date(now()),year(now()),time(now()),now());
+Query OK, 1 row affected (0.04 sec)
+
+mysql> select * from db1.t3;
++-------+------------+------------+----------+---------------------+
+| name  | birthday   | graduation | upwork   | party               |
++-------+------------+------------+----------+---------------------+
+| marry | 1998-05-06 |       2016 | 09:00:00 | 2020-05-06 20:30:00 |
+| tom   | 2020-06-21 |       2020 | 20:19:12 | 2020-06-21 20:19:12 |
++-------+------------+------------+----------+---------------------+
+2 rows in set (0.00 sec)

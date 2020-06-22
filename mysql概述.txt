@@ -1,0 +1,106 @@
+日期：2020-06-17 11:52
+环境：mysql-5.7.17-1.el7.x86_64
+--------------------------------
+【什么是数据库？】
+存储数据的仓库，以表格的形式存储
+数据包括哪些？视频 图片 音频 文本
+
+【数据库用在哪里】
+金融机构    游戏网站    购物网站    论坛网站
+
+【提供数据库服务的软件】
+Oracle  DB2 SQLserver
+Mysql Mariadb mongodb redis
+
+开源软件（Mysql Mariadb mongodb redis）开源不等于免费
+商业软件（Oracle  DB2 SQLserver Mysql）
+是否跨平台（除SQLserver外）
+软件包的类型（rpm 源码包）
+软件的来源（官网下载、软件源安装）
+非关系型数据库（mongodb redis）存储简单内容，速度快。
+数据迁移
+
+【MySQL特点】
+关系型数据库
+可移植性好
+跨平台（Windows Unix Linux）
+支持多语言（php perl python .net java ..)
+
+【安装MySQL】
+卸载mariadb-server
+systemctl stop mariadb
+# rpm -e --nodeps mariadb-server        #--nodeps忽略依赖关系，不能用yum卸载！
+# rm -rf /etc/my.cnf                    #删除mariadb主配置文件
+# rm -rf /var/lib/mysql/*               #删除mariadb数据目录文件
+
+解压软件打包文件
+# tar mysql-5.7.17-1.el7.x86_64.rpm-bundle.tar 
+mysql-community-server-5.7.17-1.el7.x86_64.rpm          #mysql服务器（mysql服务）
+mysql-community-client-5.7.17-1.el7.x86_64.rpm          #mysql客户端（客户端命令）
+...                                                     #其他辅助包
+
+安装MySQL
+# rpm -Uvh mysql-community-*.rpm                          #rpm -U表示升级安装
+...
+	试图安装 mysql-community-server-minimal-5.7.17-1.el7.x86_64 和 mysql-community-server-5.7.17-1.el7.x86_64 会导致文件冲突
+（排错：如果安装包冲突，临时删除冲突的辅助安装包）
+
+	perl(Data::Dumper) 被 mysql-community-test-5.7.17-1.el7.x86_64 需要
+	perl(JSON) 被 mysql-community-test-5.7.17-1.el7.x86_64 需要
+（排错：如果提示依赖包，则需要yum安装依赖包，例如perl-JSON、perl-Data-Dumper）
+# yum list | grep -i perl |grep -i -E "JSON|Data|Dumper"    #查询依赖包关键字，-i忽略大小写，-E匹配正则
+perl-Data-Dumper.x86_64                 2.145-3.el7                @dvd         
+perl-JSON.noarch                        2.59-2.el7                 @dvd         
+...
+# yum -y install perl-Data-Dumper.x86_64 perl-JSON          #安装依赖包
+
+验证安装
+# rpm -qa |grep mysql
+mysql-community-server-5.7.17-1.el7.x86_64
+mysql-community-client-5.7.17-1.el7.x86_64
+...
+
+【启动服务】
+服务名：mysqld
+端口号：3306
+主配置文件：/etc/my.conf
+数据库目录：/var/lib/mysql
+所有者所有组：mysql                     #源码安装需要手动创建mysql用户和组
+
+# systemctl start mysqld                #需要等待片刻（数据初始化目录/var/lib/mysql)
+# systemctl enable mysqld
+
+# netstat -utpnla |grep 3306            #查看端口是否开启
+tcp6       0      0 :::3306                 :::*                    LISTEN      13601/mysqld        
+
+ ps -C mysqld  或ps aux |grep mysqld    #查看mysqld进程
+
+【连接mysql】（本地连接）
+连接方法有三种：命令行、脚本（PHP python）、图形工具
+
+命令连接
+格式：
+mysql -h数据库服务器IP地址或主机名 -u数据库用户名 -p密码
+
+初始密码：当初始化启动服务器时，会生成初始密码，在/var/log/mysqld.log
+# grep password /var/log/mysqld.log
+2020-06-19T15:16:07.156887Z 1 [Note] A temporary password is generated for root@localhost: ;c4Oe*2!o=Na
+（root@localhost: ;c4Oe*2!o=Na即初始化用户root 密码;c4Oe*2!o=Na）
+
+# mysql -hlocalhost -uroot -p';c4Oe*2!o=Na'             #登陆mysql，如果密码语法报错可以加引号
+
+修改密码：首次登陆需要更改root密码才能操作，密码必须符合复杂性要求。
+mysql> alter user root@"localhost" identified by "A..520bc..";
+Query OK, 0 rows affected (0.00 sec)
+
+# mysql -hlocalhost -uroot -pA..520bc..
+mysql>show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+4 rows in set (0.00 sec)

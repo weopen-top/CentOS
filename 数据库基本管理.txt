@@ -1,0 +1,194 @@
+日期：2020-06-20 13:20
+环境：mysql 5.7.17
+-----------------------
+【修改密码策略】
+临时修改：
+mysql> show variables like "%password%";                #查看密码相关
+| validate_password_policy              | MEDIUM |      #密码策略
+0 or LOW            #长度
+1 or MEDIUM         #长度；数字，小写/大写，和特殊字符
+2 or STRONG         #长度；数字，小写/大写和特殊字符；字典文件
+mysql> set global validate_password_policy=0;
+
+| validate_password_length              | 8      |      #密码长度
+mysql> set global validate_password_length=6;
+
+mysql> alter user root@"localhost" identified by "123456";
+
+永久修改：
+# systemctl stop mysqld
+# vim /etc/my.cnf
+[mysqld]
+validate_password_policy=0
+validate_password_length=6
+...
+
+【常用术语】
+DB，DataBase
+    数据库：依照某种数据模型进行组织并存放到存储器的数据集合。
+DBMS，DataBase Management System
+    数据库管理系统：用来操作和管理数据库的大型服务软件。
+DBS，DataBase System
+    数据库系统：即DB+DBMS，指带有数据库并整合了数据库管理软件的计算机系统。
+SQL 结构化查询语言
+
+【mysql> 环境管理】
+操作指令类型
+    MySQL指令：环境切换、看状态、退出等控制
+    SQL指令：数据库定义/查询/操纵/授权语句
+        DDL数据定义语言（create建库/表、alter修改用户、drop删库/表）
+        DML数据操作语言（insert插入记录、update修改记录、delete删除记录)
+        DCL数据控制语言（grant授权、revoke删除授权)
+        DTL数据事物语言（commit提交、rollback回滚、savepoint保存节点)
+基本注意事项
+    1.操作指令不区分大小写（密码、变量值除外）
+    2.每条SQL指令以;结束或分隔
+    3.不支持Tab键自动补齐
+    4.\c可废弃当前编写错的操作指令
+
+【数据存储过程】
+1.连接数据库服务器
+    mysql -h数据库地址 -u数据库用户名 -p密码 [库名]
+
+
+2.建库（类似用SQL在/var/lib/mysql/下生成文件夹）
+    数据库管理命令：建库 切换库 删除库 查看库
+    show databases;             #查看库
+    create database 库名;       #创建库，库名要求：只能是大小写下划线数字，不能纯数字,类似mkdir
+    select database();          #查看当所在库，类似pwd
+    use 库名;                   #切换库，类似cd
+    drop database 库名;         #删除库，系统的库不能删！
+
+演示：
+mysql> create database studb;           #创建一个名为studb的库
+
+mysql> show databases;                  #查看现有库
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| studb              |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+mysql> use studb;                       #切换到studb库
+mysql> select database();               #查看当前所在库
++------------+
+| database() |
++------------+
+| studb      |
++------------+
+1 row in set (0.00 sec)
+
+
+3.建表（只能在库里创建）
+    show tables;                                #显示已有的表
+    create table 库名.表名(                     #创建表
+        字段名1 字段类型(宽度) 约束条件,        #字段类型：char字符，int数值
+        字段名2 字段类型(宽度) 约束条件,
+        ...
+    );
+    desc 库名.表名;                             #查看表结构，也可以是相对路径
+    drop table 库名.表名;                       #删除表，系统表不能删！
+
+演示：
+mysql> create table studb.stuinfo(name char(10),age int);       #在sutdb库创建stuinfo表（name字段为字符串10个字节宽度，age字段为数值宽度默认，约束条件默认）
+
+mysql> show tables;                 #查看studb库下的表
++-----------------+
+| Tables_in_studb |
++-----------------+
+| stuinfo         |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> desc studb.stuinfo;          #查看studb库的stuinfo表的表结构
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | YES  |     | NULL    |       |
+| age   | int(11)  | YES  |     | NULL    |       |
++-------+----------+------+-----+---------+-------+
+2 rows in set (0.03 sec)
+
+# ls /var/lib/mysql/studb/          #查看生成的数据库文件
+db.opt  stuinfo.frm  stuinfo.ibd
+
+
+4.插入记录
+    select 字段 from 表名;               #查看表记录，*表示每一列
+    insert into 表名 values(值列表);     #插入表记录,字符串加引号，列和值列表之间逗号隔开。
+    update 表名 set 字段=值 where 条件;  #修改表记录，不加where表示修改所有行
+    delete from 表名 where 条件;         #删除表记录，不加where表示删除所有行
+
+演示：
+mysql> insert into studb.stuinfo values("tom",18),("jerry",17);     #在studb.stuinfo表添加两行值列表
+mysql> select * from studb.stuinfo;         #查看studb.stuinfo表
++-------+------+
+| name  | age  |
++-------+------+
+| tom   |   18 |
+| jerry |   17 |
++-------+------+
+2 rows in set (0.00 sec)
+
+mysql> select name from studb.stuinfo;      #查看studb.stuinfo表的name字段
++-------+
+| name  |
++-------+
+| tom   |
+| jerry |
++-------+
+2 rows in set (0.00 sec)
+
+mysql> update studb.stuinfo set age=19 where name="tom";        #将name字段为tom行的age字段改为19
+mysql> select * from studb.stuinfo;                             #查看studb.stuinfo表
++-------+------+
+| name  | age  |
++-------+------+
+| tom   |   19 |
+| jerry |   17 |
++-------+------+
+2 rows in set (0.00 sec)
+
+mysql> delete from studb.stuinfo where name="tom";              #删除name字段为tom的行
+mysql> select * from studb.stuinfo;                             #查看
++-------+------+
+| name  | age  |
++-------+------+
+| jerry |   17 |
++-------+------+
+1 row in set (0.00 sec)
+
+
+5.断开连接
+mysql> quit
+或
+mysql> exit
+
+【数据库结构】
+数据库服务器<-----库<------表<------记录<------列<-------行
+
+【设置表使用的字符集】gb2312 utf-8
+    create table 库名.表名(字段.. ) DEFAULT CHARSET=utf8;     #创建表时定义字符集
+
+演示：
+mysql> create database 学生库;             #创建学生库
+mysql> create table 学生库.学生表(姓名 char(4),年龄 int) DEFAULT CHARSET=utf8;        #创建学生表，指定字符集为utf-8
+mysql> insert into 学生库.学生表 values("上官婉儿",18);               #插入中文表记录
+mysql> select * from 学生库.学生表;                                   #查看表记录
++--------------+--------+
+| 姓名         | 年龄   |
++--------------+--------+
+| 上官婉儿     |     18 |
++--------------+--------+
+1 row in set (0.01 sec)
+
+mysql> show create table 学生库.学生表;           #查看创建表信息
+...
+) ENGINE=InnoDB DEFAULT CHARSET=utf8        |     #DEFAULT CHARSET=utf8
+...
+1 row in set (0.00 sec)

@@ -1,0 +1,6 @@
+日期：2020-06-19 09:05
+环境：centos
+-----------------------
+【查询系统版本】
+# cat /etc/redhat-release
+CentOS Linux release 7.2.1511 (Core) 
