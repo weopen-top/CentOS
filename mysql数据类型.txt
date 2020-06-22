@@ -180,3 +180,38 @@ mysql> select * from db1.t3;
 | tom   | 2020-06-21 |       2020 | 20:19:12 | 2020-06-21 20:19:12 |
 +-------+------------+------------+----------+---------------------+
 2 rows in set (0.00 sec)
+
+【枚举类型】
+从给定值集合中选择单个值，ENUM
+    格式：enum(值1,值2,值3,..)
+从给定值集合中选择多个值，SET
+    格式：set(值1,值2,值3,..)
+
+演示：
+mysql> create table t4(
+    -> name char(10),
+    -> sex enum("boy","girl","secret"),
+    -> likes set("eat","sleep","game","film")
+    -> );
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> desc t4;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | YES  |     | NULL    |       |
+| sex   | enum('boy','girl','secret')      | YES  |     | NULL    |       |
+| likes | set('eat','sleep','game','film') | YES  |     | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> insert into t4 values("bob","boy","eat,sleep,game");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from t4;
++------+------+----------------+
+| name | sex  | likes          |
++------+------+----------------+
+| bob  | boy  | eat,sleep,game |
++------+------+----------------+
+1 row in set (0.00 sec)
