@@ -26,6 +26,8 @@ DECIMAL     对DECIMAL(M,D)，其中M为有效位数、D为小数位数，M应�
 UNSIGNED        #无符号（即非负数），不加默认支持负数
 ZEROFILL        #0代替空格补位
 
+指定宽度可以节省存储空间
+
 演示：
 mysql> create database db1;                 #创建db1库
 Query OK, 1 row affected (0.00 sec)
@@ -104,16 +106,18 @@ DATETIME
     yyyymmddHHMMSS
     占用8个字节
     范围：1000-01-01 00:00:00.000000～9999-12-31 23:59:59.999999
+    无数据时为空（NULL）
 TIMESTAMP
     yyyymmddHHMMSS
     占用4个字节
     范围：1970-01-01 00:00:00.000000～2038-01-19 03:14:07.999999
+    无数据时为当前系统之间
 DATE
     yyyymmdd
     占用4个字节
     范围：0001-01-01～9999-12-31
 YEAR
-    yyyy
+    yy或yyyy(可以是98、20，例外：00不可用）
     占用1个字节
     范围：1901～2155
 TIME
@@ -121,7 +125,7 @@ TIME
     占用3个字节
     格式：HH:MM:SS
 
-演示：
+演示1：
 mysql> create table db1.t3(
 name char(10),
 birthday date,
@@ -153,6 +157,22 @@ mysql> select * from db1.t3;
 | marry | 1998-05-06 |       2016 | 09:00:00 | 2020-05-06 20:30:00 |
 +-------+------------+------------+----------+---------------------+
 1 row in set (0.00 sec)
+
+演示2：
+mysql> create table db2.t3(user char(10),passwd char(6),time timestamp);
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> insert into t3(user,passwd) values("tom","123456");
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select * from db2.t3;
++------+--------+---------------------+
+| user | passwd | time                |
++------+--------+---------------------+
+| tom  | 123456 | 2020-06-23 22:30:25 |
++------+--------+---------------------+
+1 row in set (0.00 sec)
+
 
 【时间函数】
 now()               #获取调用此函数时的系统日期时间
@@ -188,14 +208,14 @@ mysql> select * from db1.t3;
     格式：set(值1,值2,值3,..)
 
 演示：
-mysql> create table t4(
+mysql> create table db1.t4(
     -> name char(10),
     -> sex enum("boy","girl","secret"),
     -> likes set("eat","sleep","game","film")
     -> );
 Query OK, 0 rows affected (0.08 sec)
 
-mysql> desc t4;
+mysql> desc db1.t4;
 +-------+----------------------------------+------+-----+---------+-------+
 | Field | Type                             | Null | Key | Default | Extra |
 +-------+----------------------------------+------+-----+---------+-------+
@@ -215,3 +235,27 @@ mysql> select * from t4;
 | bob  | boy  | eat,sleep,game |
 +------+------+----------------+
 1 row in set (0.00 sec)
+
+【约束条件】
+Null        #允许为空，默认设置。空用NULL表示，0、""和"NULL"都不为空。
+NOT NULL    #不允许为空
+Key         #索引类型
+Default     #设置默认值，缺省为NULL
+
+演示：
+mysql> create table db2.t4(
+    -> name char(10) not null,
+    -> age tinyint not null default 25,
+    -> likes set('eat','sleep','game','girls') default "eat,sleep"
+    -> );
+Query OK, 0 rows affected (0.07 sec)
+
+mysql> desc db2.t4;
++-------+-----------------------------------+------+-----+-----------+-------+
+| Field | Type                              | Null | Key | Default   | Extra |
++-------+-----------------------------------+------+-----+-----------+-------+
+| name  | char(10)                          | NO   |     | NULL      |       |
+| age   | tinyint(4)                        | NO   |     | 25        |       |
+| likes | set('eat','sleep','game','girls') | YES  |     | eat,sleep |       |
++-------+-----------------------------------+------+-----+-----------+-------+
+3 rows in set (0.00 sec)

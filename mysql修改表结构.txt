@@ -1,0 +1,96 @@
+日期：2020-06-24 21:36
+环境：MySQL 5.7.17
+-----------------------
+【修改表字段】
+ALTER TABLE 表名 执行动作;
+
+【添加新字段】
+    add 字段名 类型(宽度) 约束条件;                        #添加在所有字段后
+    add 字段名 类型(宽度) 约束条件 after 字段名;           #添加在指定字段后
+    add 字段名 类型(宽度) 约束条件 first 字段名;           #添加在指定字段前
+    add 字段名 类型(宽度) 约束条件 first;                  #添加在所有字段前
+
+演示：
+mysql> desc db1.t4;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | YES  |     | NULL    |       |
+| sex   | enum('boy','girl','secret')      | YES  |     | NULL    |       |
+| likes | set('eat','sleep','game','film') | YES  |     | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+3 rows in set (0.01 sec)
+
+mysql> alter table db1.t4 add num char(9) first;            #在所有字段前添加num字段
+Query OK, 0 rows affected (0.22 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> desc db1.t4;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| num   | char(9)                          | YES  |     | NULL    |       |
+| name  | char(10)                         | YES  |     | NULL    |       |
+| sex   | enum('boy','girl','secret')      | YES  |     | NULL    |       |
+| likes | set('eat','sleep','game','film') | YES  |     | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.01 sec)
+
+【删除已有字段】
+    drop 字段;                #字段所有值都会丢失！
+
+演示：
+mysql> alter table db1.t4 drop sex,drop num;            #删除表的sex和num字段
+Query OK, 0 rows affected (0.12 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> desc db1.t4;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | YES  |     | NULL    |       |
+| likes | set('eat','sleep','game','film') | YES  |     | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+【修改字段类型】
+    modify 字段名 类型(宽度) 约束条件;              #不能和字段已存储的数据冲突！
+
+演示：
+mysql> alter table db1.t4 modify name varchar(15) not null;         #将字段改为varcha(15) not null。
+Query OK, 1 row affected (0.12 sec)
+Records: 1  Duplicates: 0  Warnings: 0
+
+mysql> desc db1.t4;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | varchar(15)                      | NO   |     | NULL    |       |
+| likes | set('eat','sleep','game','film') | YES  |     | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+【修改字段名】
+    change 字段名 新字段名 类型(宽度) 约束条件;        #修改字段名的同时也可以修改类型和约束条件。
+
+演示：
+mysql> select * from db1.t4;
++------+----------------+
+| name | likes          |
++------+----------------+
+| bob  | eat,sleep,game |
++------+----------------+
+1 row in set (0.00 sec)
+
+mysql> alter table db1.t4 change likes hobby set('eat','sleep','game','movie');      #默认为NULL
+Query OK, 0 rows affected (0.04 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> desc db1.t4;
++-------+-----------------------------------+------+-----+---------+-------+
+| Field | Type                              | Null | Key | Default | Extra |
++-------+-----------------------------------+------+-----+---------+-------+
+| name  | varchar(15)                       | NO   |     | NULL    |       |
+| hobby | set('eat','sleep','game','movie') | YES  |     | NULL    |       |
++-------+-----------------------------------+------+-----+---------+-------+
+2 rows in set (0.00 sec)

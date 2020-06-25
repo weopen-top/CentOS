@@ -119,10 +119,10 @@ db.opt  stuinfo.frm  stuinfo.ibd
 
 
 4.插入记录
-    select 字段 from 表名;               #查看表记录，*表示每一列
-    insert into 表名 values(值列表);     #插入表记录,字符串加引号，列和值列表之间逗号隔开。
-    update 表名 set 字段=值 where 条件;  #修改表记录，不加where表示修改所有行
-    delete from 表名 where 条件;         #删除表记录，不加where表示删除所有行
+    select 字段 from 表名;                      #查看表记录，*表示每一列
+    insert into 库.表(字段) values(列值);       #插入表记录,若没有“(字段)”则需要为每一列赋值，列值之间逗号隔开,字符串要用引号。
+    update 表名 set 字段=值 where 条件;         #修改表记录，不加where表示修改所有行
+    delete from 表名 where 条件;                #删除表记录，不加where表示删除所有行
 
 演示：
 mysql> insert into studb.stuinfo values("tom",18),("jerry",17);     #在studb.stuinfo表添加两行值列表
