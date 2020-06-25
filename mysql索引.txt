@@ -8,8 +8,100 @@
 缺点：减慢写入速度，占用存储空间
 
 【索引类型】
-INDEX       #普通索引
+INDEX       #普通索引*
 UNIQUE      #唯一索引
 FULLTEXT    #全文索引
-PRIMARY KEY #主键
-FOREIGN KEY #外键
+PRIMARY KEY #主键*
+FOREIGN KEY #外键*
+
+【索引算法】
+BTREE       #二差数算法
+B+TREE
+HASH
+
+【查看表中是否有索引字段】
+desc 表名;        #查看显示内容的key项
+
+mysql> desc mysql.db;           #查看mysql.db表的键值
++-----------------------+---------------+------+-----+---------+-------+
+| Field                 | Type          | Null | Key | Default | Extra |
++-----------------------+---------------+------+-----+---------+-------+
+| Host                  | char(60)      | NO   | PRI |         |       |
+| Db                    | char(64)      | NO   | PRI |         |       |
+| User                  | char(32)      | NO   | PRI |         |       |
+| Select_priv           | enum('N','Y') | NO   |     | N       |       |
+
+【查看表索引详细信息】
+show index from 表名;             #显示表详细索引信息
+
+mysql> mysql> show index from mysql.db;             #展开避免折叠，可在结尾;前加\G按行显示。
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| db    |          0 | PRIMARY  |            1 | Host        | A         |        NULL |     NULL | NULL   |      | BTREE      |         |               |
+| db    |          0 | PRIMARY  |            2 | Db          | A         |        NULL |     NULL | NULL   |      | BTREE      |         |               |
+| db    |          0 | PRIMARY  |            3 | User        | A         |           1 |     NULL | NULL   |      | BTREE      |         |               |
+| db    |          1 | User     |            1 | User        | A         |        NULL |     NULL | NULL   |      | BTREE      |         |               |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+4 rows in set (0.00 sec)
+
+【INDEX：普通索引】
+一个表中可以有多个INDEX字段
+字段的值允许有重复，且可以赋NULL值
+经常把查询条件的字段设置为INDEX字段
+INDEX字段的KEY标志是MUL
+
+【创建时添加索引】
+create table 表名(字段名 约束类型,index(字段))             #多个字段和索引用逗号隔开。
+
+演示：
+mysql> create table studb.t2(               #创建表及表字段、字段索引
+    -> name char(10),
+    -> age int(2),
+    -> sex enum("boy","girl"),
+    -> loves set("ete","sleep","game","movie"),
+    -> index(name),index(sex),index(loves)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> desc studb.t2;           #查看表字段信息
++-------+-----------------------------------+------+-----+---------+-------+
+| Field | Type                              | Null | Key | Default | Extra |
++-------+-----------------------------------+------+-----+---------+-------+
+| name  | char(10)                          | YES  | MUL | NULL    |       |
+| age   | int(2)                            | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')                | YES  | MUL | NULL    |       |
+| loves | set('ete','sleep','game','movie') | YES  | MUL | NULL    |       |
++-------+-----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> show index from studb.t2;                #查看表索引信息
+
+
+【已有表添加索引】
+create index 索引名 on 表名(字段名);              #索引名自定义
+
+演示：
+mysql> create index name on studb.stuinfo(name);        #在原有表中添加索引
+Query OK, 0 rows affected (0.10 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> show index from studb.stuinfo\G;                 #查询索引信息并转行显示
+*************************** 1. row ***************************
+        Table: stuinfo
+   Non_unique: 1
+     Key_name: name
+ Seq_in_index: 1
+  Column_name: name
+    Collation: A
+  Cardinality: 1
+     Sub_part: NULL
+       Packed: NULL
+         Null: YES
+   Index_type: BTREE
+      Comment: 
+Index_comment: 
+1 row in set (0.00 sec)
+
+ERROR: 
+No query specified
