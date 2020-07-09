@@ -24,7 +24,7 @@ Mysql Mariadb mongodb redis
 关系型数据库
 可移植性好
 跨平台（Windows Unix Linux）
-支持多语言（php perl python .net java ..)
+多语言支持（php perl python .net java ..)
 
 【安装MySQL】
 卸载mariadb-server
