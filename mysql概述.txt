@@ -34,7 +34,7 @@ systemctl stop mariadb
 # rm -rf /var/lib/mysql/*               #删除mariadb数据目录文件
 
 解压软件打包文件
-# tar mysql-5.7.17-1.el7.x86_64.rpm-bundle.tar 
+# tar -xf mysql-5.7.17-1.el7.x86_64.rpm-bundle.tar 
 mysql-community-server-5.7.17-1.el7.x86_64.rpm          #mysql服务器（mysql服务）
 mysql-community-client-5.7.17-1.el7.x86_64.rpm          #mysql客户端（客户端命令）
 ...                                                     #其他辅助包
@@ -104,3 +104,25 @@ mysql>show databases;
 | sys                |
 +--------------------+
 4 rows in set (0.00 sec)
+
+【修改密码策略】
+临时修改：
+mysql> show variables like "%password%";                #查看密码相关
+| validate_password_policy              | MEDIUM |      #密码策略
+0 or LOW            #长度
+1 or MEDIUM         #长度；数字，小写/大写，和特殊字符
+2 or STRONG         #长度；数字，小写/大写和特殊字符；字典文件
+mysql> set global validate_password_policy=0;
+
+| validate_password_length              | 8      |      #密码长度
+mysql> set global validate_password_length=6;
+
+mysql> alter user root@"localhost" identified by "123456";
+
+永久修改：
+# systemctl stop mysqld
+# vim /etc/my.cnf
+[mysqld]
+validate_password_policy=0
+validate_password_length=6
+...
