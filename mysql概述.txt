@@ -24,7 +24,7 @@ Mysql Mariadb mongodb redis
 关系型数据库
 可移植性好
 跨平台（Windows Unix Linux）
-支持多语言（php perl python .net java ..)
+多语言支持（php perl python .net java ..)
 
 【安装MySQL】
 卸载mariadb-server
@@ -104,3 +104,25 @@ mysql>show databases;
 | sys                |
 +--------------------+
 4 rows in set (0.00 sec)
+
+【修改密码策略】
+临时修改：
+mysql> show variables like "%password%";                #查看密码相关
+| validate_password_policy              | MEDIUM |      #密码策略
+0 or LOW            #长度
+1 or MEDIUM         #长度；数字，小写/大写，和特殊字符
+2 or STRONG         #长度；数字，小写/大写和特殊字符；字典文件
+mysql> set global validate_password_policy=0;
+
+| validate_password_length              | 8      |      #密码长度
+mysql> set global validate_password_length=6;
+
+mysql> alter user root@"localhost" identified by "123456";
+
+永久修改：
+# systemctl stop mysqld
+# vim /etc/my.cnf
+[mysqld]
+validate_password_policy=0
+validate_password_length=6
+...
