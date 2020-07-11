@@ -80,7 +80,7 @@ tcp6       0      0 :::3306                 :::*                    LISTEN      
 
 命令连接
 格式：
-mysql -h数据库服务器IP地址或主机名 -u数据库用户名 -p密码
+mysql [-h数据库服务器IP地址或主机名] -u数据库用户名 -p密码 [库名]
 
 初始密码：当初始化启动服务器时，会生成初始密码，在/var/log/mysqld.log
 # grep password /var/log/mysqld.log
