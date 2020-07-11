@@ -19,6 +19,12 @@ BTREE       #二差数算法
 B+TREE
 HASH
 
+【INDEX：普通索引】
+一个表中可以有多个INDEX字段
+字段的值允许有重复，且可以赋NULL值
+经常把查询条件的字段设置为INDEX字段
+INDEX字段的KEY标志是MUL
+
 【查看表中是否有索引字段】
 desc 表名;        #查看显示内容的key项
 
@@ -45,12 +51,6 @@ mysql> mysql> show index from mysql.db;             #展开避免折叠，可在
 +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
 4 rows in set (0.00 sec)
 
-【INDEX：普通索引】
-一个表中可以有多个INDEX字段
-字段的值允许有重复，且可以赋NULL值
-经常把查询条件的字段设置为INDEX字段
-INDEX字段的KEY标志是MUL
-
 【创建时添加索引】
 create table 表名(字段名 约束类型,index(字段))             #多个字段和索引用逗号隔开。
 
@@ -59,7 +59,7 @@ mysql> create table studb.t2(               #创建表及表字段、字段索�
     -> name char(10),
     -> age int(2),
     -> sex enum("boy","girl"),
-    -> loves set("ete","sleep","game","movie"),
+    -> loves set("eat","sleep","game","movie"),
     -> index(name),index(sex),index(loves)
     -> );
 Query OK, 0 rows affected (0.05 sec)
@@ -71,12 +71,12 @@ mysql> desc studb.t2;           #查看表字段信息
 | name  | char(10)                          | YES  | MUL | NULL    |       |
 | age   | int(2)                            | YES  |     | NULL    |       |
 | sex   | enum('boy','girl')                | YES  | MUL | NULL    |       |
-| loves | set('ete','sleep','game','movie') | YES  | MUL | NULL    |       |
+| loves | set('eat','sleep','game','movie') | YES  | MUL | NULL    |       |
 +-------+-----------------------------------+------+-----+---------+-------+
 4 rows in set (0.00 sec)
 
 mysql> show index from studb.t2;                #查看表索引信息
-
+...
 
 【已有表添加索引】
 create index 索引名 on 表名(字段名);              #索引名自定义
@@ -105,3 +105,21 @@ Index_comment:
 
 ERROR: 
 No query specified
+
+【删除索引】
+drop index 索引名 on 表名;               #索引名即key_name
+
+演示：
+mysql> drop index name on t2;           #删除表的name索引
+mysql> drop index sex on t2;            #删除表的sex索引
+
+mysql> desc t2;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | YES  |     | NULL    |       |
+| age   | int(2)                           | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')               | YES  |     | NULL    |       |
+| loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)

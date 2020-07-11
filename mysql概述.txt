@@ -34,7 +34,7 @@ systemctl stop mariadb
 # rm -rf /var/lib/mysql/*               #删除mariadb数据目录文件
 
 解压软件打包文件
-# tar mysql-5.7.17-1.el7.x86_64.rpm-bundle.tar 
+# tar -xf mysql-5.7.17-1.el7.x86_64.rpm-bundle.tar 
 mysql-community-server-5.7.17-1.el7.x86_64.rpm          #mysql服务器（mysql服务）
 mysql-community-client-5.7.17-1.el7.x86_64.rpm          #mysql客户端（客户端命令）
 ...                                                     #其他辅助包
