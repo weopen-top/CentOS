@@ -21,7 +21,7 @@ INT         4字节    -2^31～2^31-1    0～2^32-1        大整数
 BIGINT      8字节    -2^63～2^63-1    0～2^64-1        极大整数
 FLOAT       4字节                                      单精度浮点数
 DOUBLE      8字节                                      双精度浮点数
-DECIMAL     对DECIMAL(M,D)，其中M为有效位数、D为小数位数，M应大于D，占用M+2字节（DECIMAL代指浮点型）
+DECIMAL     对DECIMAL(M,D)，其中M为有效位数、D为小数位数，M应大于D，占用M+2字节（DECIMAL代指浮点型FLOAT/DECIMAL）
 
 UNSIGNED        #无符号（即非负数），不加默认支持负数
 ZEROFILL        #0代替空格补位
@@ -61,11 +61,11 @@ mysql> select * from t1;
 1 row in set (0.00 sec)
 
 【字符类型】字符值需要引号引起来
-定长：char(字符数)
+定长：char(宽度)
     最大长度255字符
     不够指定字符时在右边用空格补齐
     字符数断超出时，无法写入数据
-变长：varchar（字符数）
+变长：varchar（宽度）
     最大长度65352字符
     按数据实际大小分配存储空间
     字符数断超出时，无法写入数据
@@ -183,7 +183,7 @@ curtime()           #获取当前系统时刻
 year()              #获取指定实践中的年份
 month()             #获取指定时间中的月份
 date()              #获取指定时间中的日期
-time()              #获取指定实践中的时刻
+time()              #获取指定时间中的时刻
 
 mysql> select now();            #获取当前时间
 mysql> select time(now())       #获取当前时间的时刻
@@ -225,7 +225,7 @@ mysql> desc db1.t4;
 +-------+----------------------------------+------+-----+---------+-------+
 3 rows in set (0.00 sec)
 
-mysql> insert into t4 values("bob","boy","eat,sleep,game");
+mysql> insert into t4 values("bob","boy","eat,sleep,game");         #values也可以是("bob",1,"eat,sleep,game")
 Query OK, 1 row affected (0.00 sec)
 
 mysql> select * from t4;
@@ -235,27 +235,3 @@ mysql> select * from t4;
 | bob  | boy  | eat,sleep,game |
 +------+------+----------------+
 1 row in set (0.00 sec)
-
-【约束条件】
-Null        #允许为空，默认设置。空用NULL表示，0、""和"NULL"都不为空。
-NOT NULL    #不允许为空
-Key         #索引类型
-Default     #设置默认值，缺省为NULL
-
-演示：
-mysql> create table db2.t4(
-    -> name char(10) not null,
-    -> age tinyint not null default 25,
-    -> likes set('eat','sleep','game','girls') default "eat,sleep"
-    -> );
-Query OK, 0 rows affected (0.07 sec)
-
-mysql> desc db2.t4;
-+-------+-----------------------------------+------+-----+-----------+-------+
-| Field | Type                              | Null | Key | Default   | Extra |
-+-------+-----------------------------------+------+-----+-----------+-------+
-| name  | char(10)                          | NO   |     | NULL      |       |
-| age   | tinyint(4)                        | NO   |     | 25        |       |
-| likes | set('eat','sleep','game','girls') | YES  |     | eat,sleep |       |
-+-------+-----------------------------------+------+-----+-----------+-------+
-3 rows in set (0.00 sec)

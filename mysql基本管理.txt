@@ -96,7 +96,7 @@ mysql> desc studb.stuinfo;          #查看studb库的stuinfo表的表结构
 db.opt  stuinfo.frm  stuinfo.ibd
 
 
-4.插入记录
+4.插入表记录
     select 字段 from 表名;                      #查看表记录，*表示每一列
     insert into 库.表(字段) values(列值);       #插入表记录,若没有“(字段)”则需要为每一列赋值，列值之间逗号隔开,字符串要用引号。
     update 表名 set 字段=值 where 条件;         #修改表记录，不加where表示修改所有行
@@ -150,7 +150,7 @@ mysql> exit
 【数据库结构】
 数据库服务器<-----库<------表<------记录<------列<-------行
 
-【设置表使用的字符集】gb2312 utf-8
+【修改字符集】gb2312 utf-8
     create table 库名.表名(字段.. ) DEFAULT CHARSET=utf8;     #创建表时定义字符集
 
 演示：

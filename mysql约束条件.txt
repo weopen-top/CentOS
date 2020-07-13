@@ -1,0 +1,38 @@
+日期：2020-06-22 04:31
+环境：mysql 5.7.17
+------------------------
+【约束条件】
+Null        #允许为空，默认设置。(空用NULL表示，0、""和"NULL"都不为空。)
+NOT NULL    #不允许为空
+Key         #索引类型
+Default     #设置默认值，缺省为NULL
+Extra       #额外设置
+
+演示：
+mysql> create table db1.t25(
+    -> name char(10) not null,
+    -> age tinyint not null default 25,
+    -> likes set('eat','sleep','game','girls') default 'eat,sleep'
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> desc db1.t25;
++-------+-----------------------------------+------+-----+-----------+-------+
+| Field | Type                              | Null | Key | Default   | Extra |
++-------+-----------------------------------+------+-----+-----------+-------+
+| name  | char(10)                          | NO   |     | NULL      |       |
+| age   | tinyint(4)                        | NO   |     | 25        |       |
+| likes | set('eat','sleep','game','girls') | YES  |     | eat,sleep |       |
++-------+-----------------------------------+------+-----+-----------+-------+
+3 rows in set (0.01 sec)
+
+mysql> insert into db1.t25(name) values('bob');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select * from db1.t25;
++------+-----+-----------+
+| name | age | likes     |
++------+-----+-----------+
+| bob  |  25 | eat,sleep |
++------+-----+-----------+
+1 row in set (0.00 sec)
