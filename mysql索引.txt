@@ -20,10 +20,10 @@ B+TREE
 HASH
 
 【INDEX：普通索引】
-一个表中可以有多个INDEX字段
-字段的值允许有重复，且可以赋NULL值
-经常把查询条件的字段设置为INDEX字段
 INDEX字段的KEY标志是MUL
+经常把查询条件的字段设置为INDEX字段
+字段的值允许有重复，且可以赋NULL值(前提是约束条件可以为空)
+一个表中可以有多个INDEX字段
 
 【查看表中是否有索引字段】
 desc 表名;        #查看显示内容的key项
@@ -37,10 +37,10 @@ mysql> desc mysql.db;           #查看mysql.db表的键值
 | User                  | char(32)      | NO   | PRI |         |       |
 | Select_priv           | enum('N','Y') | NO   |     | N       |       |
 
-【查看表索引详细信息】
+【查看表index索引详细信息】
 show index from 表名;             #显示表详细索引信息
 
-mysql> mysql> show index from mysql.db;             #展开避免折叠，可在结尾;前加\G按行显示。
+mysql> show index from mysql.db;             #展开避免折叠，可在结尾;前加\G按行显示。
 +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
 | Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
 +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
@@ -51,11 +51,11 @@ mysql> mysql> show index from mysql.db;             #展开避免折叠，可在
 +-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
 4 rows in set (0.00 sec)
 
-【创建时添加索引】
+【建表时添加index索引】
 create table 表名(字段名 约束类型,index(字段))             #多个字段和索引用逗号隔开。
 
 演示：
-mysql> create table studb.t2(               #创建表及表字段、字段索引
+mysql> create table db1.t211(               #创建表及表字段、字段索引
     -> name char(10),
     -> age int(2),
     -> sex enum("boy","girl"),
@@ -64,7 +64,7 @@ mysql> create table studb.t2(               #创建表及表字段、字段索�
     -> );
 Query OK, 0 rows affected (0.05 sec)
 
-mysql> desc studb.t2;           #查看表字段信息
+mysql> desc db1.t211;           #查看表字段信息
 +-------+-----------------------------------+------+-----+---------+-------+
 | Field | Type                              | Null | Key | Default | Extra |
 +-------+-----------------------------------+------+-----+---------+-------+
@@ -75,10 +75,10 @@ mysql> desc studb.t2;           #查看表字段信息
 +-------+-----------------------------------+------+-----+---------+-------+
 4 rows in set (0.00 sec)
 
-mysql> show index from studb.t2;                #查看表索引信息
+mysql> show index from db1.t211;                #查看表索引信息
 ...
 
-【已有表添加索引】
+【已有表添加index索引】
 create index 索引名 on 表名(字段名);              #索引名自定义
 
 演示：
@@ -106,7 +106,7 @@ Index_comment:
 ERROR: 
 No query specified
 
-【删除索引】
+【删除index索引】
 drop index 索引名 on 表名;               #索引名即key_name
 
 演示：
@@ -118,6 +118,86 @@ mysql> desc t2;
 | Field | Type                             | Null | Key | Default | Extra |
 +-------+----------------------------------+------+-----+---------+-------+
 | name  | char(10)                         | YES  |     | NULL    |       |
+| age   | int(2)                           | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')               | YES  |     | NULL    |       |
+| loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+【PRIMARY KEY 主键】
+主键字段的KEY标志是PRI
+一个表中只能有一个primary key字段
+字段值不允许重复，且不允许赋NULL值
+
+【建表时添加primary key主键】
+格式一：create table 表名(字段名 字段类型(宽度) 约束类型,primary key(主键字段名));
+格式二：create table 表名(字段名 字段类型(宽度) primary key)
+
+演示：
+mysql> create table t212(
+    -> name char(10),
+    -> age int(2),
+    -> primary key(name)
+    -> );
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> desc t212;
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | NO   | PRI | NULL    |       |
+| age   | int(2)   | YES  |     | NULL    |       |
++-------+----------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+mysql> alter table t212
+    -> modify name char(10) NULL;
+ERROR 1171 (42000): All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead
+
+【已有表添加primary key主键】
+alter table 表名 add primary key(字段名)        #不能和已有记录冲突
+
+演示：
+mysql> alter table t211 add primary key(name);
+
+mysql> desc t211;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | NO   | PRI | NULL    |       |
+| age   | int(2)                           | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')               | YES  |     | NULL    |       |
+| loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> alter table t25 add stunum char(9) primary key first;      #添加新字段设置为主键
+
+mysql> desc t25;
++--------+-----------------------------------+------+-----+-----------+-------+
+| Field  | Type                              | Null | Key | Default   | Extra |
++--------+-----------------------------------+------+-----+-----------+-------+
+| stunum | char(9)                           | NO   | PRI | NULL      |       |
+| name   | char(10)                          | NO   |     | NULL      |       |
+| s_year | year(4)                           | YES  |     | 1990      |       |
+| age    | tinyint(4)                        | NO   |     | 25        |       |
+| likes  | set('eat','sleep','game','girls') | YES  |     | eat,sleep |       |
++--------+-----------------------------------+------+-----+-----------+-------+
+5 rows in set (0.00 sec)
+
+【删除primary key主键】
+alter table 表名 drop primary key
+
+演示：
+mysql> alter table t211 drop primary key;
+Query OK, 2 rows affected (0.22 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql> desc t211;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | NO   | MUL | NULL    |       |
 | age   | int(2)                           | YES  |     | NULL    |       |
 | sex   | enum('boy','girl')               | YES  |     | NULL    |       |
 | loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
