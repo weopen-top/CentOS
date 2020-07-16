@@ -1,0 +1,430 @@
+日期：2020-06-24 22:47
+环境：mysql 5.7.17
+-----------------------
+【索引概述】
+是一个数据结构，类似于书的目录。
+
+优点：加快查询速度
+缺点：减慢写入速度，占用存储空间
+
+【索引类型】
+INDEX       #普通索引*
+UNIQUE      #唯一索引
+FULLTEXT    #全文索引
+PRIMARY KEY #主键*
+FOREIGN KEY #外键*
+
+【索引算法】
+BTREE       #二差数算法
+B+TREE
+HASH
+
+【INDEX：普通索引】
+INDEX字段的KEY标志是MUL
+经常把查询条件的字段设置为INDEX字段
+字段的值允许有重复，且可以赋NULL值(前提是约束条件可以为空)
+一个表中可以有多个INDEX字段
+
+【查看表中是否有索引字段】
+desc 表名;        #查看显示内容的key项
+
+mysql> desc mysql.db;           #查看mysql.db表的键值
++-----------------------+---------------+------+-----+---------+-------+
+| Field                 | Type          | Null | Key | Default | Extra |
++-----------------------+---------------+------+-----+---------+-------+
+| Host                  | char(60)      | NO   | PRI |         |       |
+| Db                    | char(64)      | NO   | PRI |         |       |
+| User                  | char(32)      | NO   | PRI |         |       |
+| Select_priv           | enum('N','Y') | NO   |     | N       |       |
+
+【查看表index索引详细信息】
+show index from 表名;             #显示表详细索引信息
+
+mysql> show index from mysql.db;             #展开避免折叠，可在结尾;前加\G按行显示。
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| db    |          0 | PRIMARY  |            1 | Host        | A         |        NULL |     NULL | NULL   |      | BTREE      |         |               |
+| db    |          0 | PRIMARY  |            2 | Db          | A         |        NULL |     NULL | NULL   |      | BTREE      |         |               |
+| db    |          0 | PRIMARY  |            3 | User        | A         |           1 |     NULL | NULL   |      | BTREE      |         |               |
+| db    |          1 | User     |            1 | User        | A         |        NULL |     NULL | NULL   |      | BTREE      |         |               |
++-------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+4 rows in set (0.00 sec)
+
+【建表时添加index索引】
+create table 表名(字段名 约束类型,index(字段))             #多个字段和索引用逗号隔开。
+
+演示：
+mysql> create table db1.t211(               #创建表及表字段、字段索引
+    -> name char(10),
+    -> age int(2),
+    -> sex enum("boy","girl"),
+    -> loves set("eat","sleep","game","movie"),
+    -> index(name),index(sex),index(loves)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> desc db1.t211;           #查看表字段信息
++-------+-----------------------------------+------+-----+---------+-------+
+| Field | Type                              | Null | Key | Default | Extra |
++-------+-----------------------------------+------+-----+---------+-------+
+| name  | char(10)                          | YES  | MUL | NULL    |       |
+| age   | int(2)                            | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')                | YES  | MUL | NULL    |       |
+| loves | set('eat','sleep','game','movie') | YES  | MUL | NULL    |       |
++-------+-----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> show index from db1.t211;                #查看表索引信息
+...
+
+【已有表添加index索引】
+create index 索引名 on 表名(字段名);              #索引名自定义
+
+演示：
+mysql> create index name on studb.stuinfo(name);        #在原有表中添加索引
+Query OK, 0 rows affected (0.10 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> show index from studb.stuinfo\G;                 #查询索引信息并转行显示
+*************************** 1. row ***************************
+        Table: stuinfo
+   Non_unique: 1
+     Key_name: name
+ Seq_in_index: 1
+  Column_name: name
+    Collation: A
+  Cardinality: 1
+     Sub_part: NULL
+       Packed: NULL
+         Null: YES
+   Index_type: BTREE
+      Comment: 
+Index_comment: 
+1 row in set (0.00 sec)
+
+ERROR: 
+No query specified
+
+【删除index索引】
+drop index 索引名 on 表名;               #索引名即key_name
+
+演示：
+mysql> drop index name on t2;           #删除表的name索引
+mysql> drop index sex on t2;            #删除表的sex索引
+
+mysql> desc t2;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | YES  |     | NULL    |       |
+| age   | int(2)                           | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')               | YES  |     | NULL    |       |
+| loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+【UNIQUE唯一索引】
+唯一索引的KEY标志是UNI
+若约束唯一索引不允许为空且没有主键时，KEY标志为PRI，但不是主键。（该内容需要先了解主键）
+一个表中可以有多个UNIQUE字段
+字段的值不可以重复，但允许赋NULL值。
+
+演示：
+mysql> create table t216(                               #新建t216表
+    -> name char(10),                                   #name（姓名）字段
+    -> sf_id char(18) not null,                         #sf_id（身份证）字段 不允许为NULL
+    -> js_id char(18),                                  #js_id（驾驶证）字段
+    -> hz_id char(8),                                   #hz_id（护照）字段
+    -> unique(js_id),unique(sf_id),unique(hz_id)        #设置js_id、sf_id和hz_id字段为唯一索引
+    -> );
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> desc t216;                                       #设置为UNIQUE且不允许为NULL的字段，KEY标志变为PRI但不是主键。
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | YES  |     | NULL    |       |
+| sf_id | char(18) | YES  | PRI | NULL    |       |
+| js_id | char(18) | YES  | UNI | NULL    |       |
+| hz_id | char(8)  | YES  | UNI | NULL    |       |
++-------+----------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> alter table t216 add primary key(name);          #将name字段修改为主键（该内容先了解主键）
+Query OK, 0 rows affected (0.27 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> desc t216;                                       #sf_id字段KEY标志又变回UNI
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | NO   | PRI | NULL    |       |
+| sf_id | char(18) | NO   | UNI | NULL    |       |
+| js_id | char(18) | YES  | UNI | NULL    |       |
+| hz_id | char(8)  | YES  | UNI | NULL    |       |
++-------+----------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+【在已有表中创建UNIQUE唯一索引】
+create unique index 索引名 on 表名(字段名);
+
+【PRIMARY KEY 主键】
+主键字段的KEY标志是PRI，但KEY标志是PRI的字段不一定是主键。
+一个表中只能有一个primary key字段
+字段值不允许重复，且不允许赋NULL值
+
+【建表时添加primary key主键】
+格式一：create table 表名(字段名 字段类型(宽度) 约束类型,primary key(主键字段名));
+格式二：create table 表名(字段名 字段类型(宽度) primary key)
+
+演示：
+mysql> create table t212(
+    -> name char(10),
+    -> age int(2),
+    -> primary key(name)
+    -> );
+Query OK, 0 rows affected (0.14 sec)
+
+mysql> desc t212;
++-------+----------+------+-----+---------+-------+
+| Field | Type     | Null | Key | Default | Extra |
++-------+----------+------+-----+---------+-------+
+| name  | char(10) | NO   | PRI | NULL    |       |
+| age   | int(2)   | YES  |     | NULL    |       |
++-------+----------+------+-----+---------+-------+
+2 rows in set (0.00 sec)
+
+mysql> alter table t212
+    -> modify name char(10) NULL;
+ERROR 1171 (42000): All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead
+
+【已有表添加primary key主键】
+alter table 表名 add primary key(字段名)        #不能和已有记录冲突
+
+演示：
+mysql> alter table t211 add primary key(name);
+
+mysql> desc t211;
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | NO   | PRI | NULL    |       |
+| age   | int(2)                           | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')               | YES  |     | NULL    |       |
+| loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> alter table t25 add stunum char(9) primary key first;      #添加新字段设置为主键
+
+mysql> desc t25;
++--------+-----------------------------------+------+-----+-----------+-------+
+| Field  | Type                              | Null | Key | Default   | Extra |
++--------+-----------------------------------+------+-----+-----------+-------+
+| stunum | char(9)                           | NO   | PRI | NULL      |       |
+| name   | char(10)                          | NO   |     | NULL      |       |
+| s_year | year(4)                           | YES  |     | 1990      |       |
+| age    | tinyint(4)                        | NO   |     | 25        |       |
+| likes  | set('eat','sleep','game','girls') | YES  |     | eat,sleep |       |
++--------+-----------------------------------+------+-----+-----------+-------+
+5 rows in set (0.00 sec)
+
+【删除primary key主键】
+alter table 表名 drop primary key;
+
+演示：
+mysql> alter table t211 drop primary key;
+Query OK, 2 rows affected (0.22 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql> desc t211;                       #删除primary key字段后依然不能赋空值（NULL）。
++-------+----------------------------------+------+-----+---------+-------+
+| Field | Type                             | Null | Key | Default | Extra |
++-------+----------------------------------+------+-----+---------+-------+
+| name  | char(10)                         | NO   | MUL | NULL    |       |
+| age   | int(2)                           | YES  |     | NULL    |       |
+| sex   | enum('boy','girl')               | YES  |     | NULL    |       |
+| loves | set('eat','sleep','game','move') | YES  | MUL | NULL    |       |
++-------+----------------------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+【复合主键】
+如果有多个字段都为primary key，称为符合主键，必须一起创建。
+（primary key字段的值不允许同时重复）
+
+演示：
+mysql> create table t214(                   #新建t214表
+    -> cip varchar(15),                     #客户端IP字段
+    -> port smallint,                       #端口字段
+    -> status enum("allow","deny"),         #状态字段（允许，拒绝）
+    -> primary key(cip,port)                #同时把cip和port字段设为primary key
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> insert into t214 values              #向t214表插入2条记录，且主键字段值同时重复。
+    -> ("1.1.1.1",21,"deny"),
+    -> ("1.1.1.1",21,"allow");
+ERROR 1062 (23000): Duplicate entry '1.1.1.1-21' for key 'PRIMARY'          #创建失败！提示主键重复
+
+mysql> insert into t214 values              #primary key字段值不同时一致则创建成功。
+    -> ("1.1.1.1",21,"deny")
+    -> ,("1.1.1.1",23,"allow"),
+    -> ("2.2.2.2",23,"allow");
+Query OK, 3 rows affected (0.03 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> select * from t214;
++---------+------+--------+
+| cip     | port | status |
++---------+------+--------+
+| 1.1.1.1 |   21 | deny   |
+| 1.1.1.1 |   23 | allow  |
+| 2.2.2.2 |   23 | allow  |
++---------+------+--------+
+3 rows in set (0.00 sec)
+
+【删除复合主键】
+主键只能有一个，所以删除主键不能只删除某一个primary key字段。
+
+演示：
+mysql> alter table t214 drop primary key(cip);              #只删除某一个primary key则提示失败！
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '(cip)' at line 1
+
+mysql> alter table t214 drop primary key;                   #直接删除所有primary key字段则成功。
+Query OK, 3 rows affected (0.18 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> desc t214;                                           #删除primary key字段后依然不能赋空值（NULL）。
++--------+----------------------+------+-----+---------+-------+
+| Field  | Type                 | Null | Key | Default | Extra |
++--------+----------------------+------+-----+---------+-------+
+| cip    | varchar(15)          | NO   |     | NULL    |       |
+| port   | smallint(6)          | NO   |     | NULL    |       |
+| status | enum('allow','deny') | YES  |     | NULL    |       |
++--------+----------------------+------+-----+---------+-------+
+3 rows in set (0.00 sec)
+
+【值自增长】
+主键经常和AUTO_INCREMENT连用，让字段的值自增长，例如编号字段。只有主键才可以设置。
+（可以添加主键为NULL的记录，但不会真的为NULL，因为自增长会填充）
+
+演示：
+mysql> create table t215(                                   #新建表t215
+id int(2) zerofill primary key auto_increment,              #id字段 数值类型(宽度2) 0补空位 主键 值自增加
+name char(10),                                              #name字段 字符类型(宽度10)
+sex enum("boy","girl") default "boy",                       #sex字段 唯一枚举类型 默认为boy
+age tinyint(2) unsigned default 18 );                       #age字段 小数值类型(宽度2) 非负数 默认为18
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> insert into t215(name) values                  #插入记录到t215(name)字段 值为tom、jerry、tom
+("tom"),
+("jerry"),
+("tom");
+Query OK, 2 rows affected (0.02 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+
+mysql> select * from t215;                                  #查看所有字段
++----+-------+------+------+
+| id | name  | sex  | age  |
++----+-------+------+------+
+| 01 | tom   | boy  |   18 |
+| 02 | jerry | boy  |   18 |
+| 03 | tom   | boy  |   18 |
++----+-------+------+------+
+3 rows in set (0.00 sec)
+
+mysql> select * from t215 where id=3;                       #查看id为3的记录
++----+------+------+------+
+| id | name | sex  | age  |
++----+------+------+------+
+| 03 | tom  | boy  |   18 |
++----+------+------+------+
+1 row in set (0.00 sec)
+
+【FOREIGN KEY外键】
+KEY标志：MUL
+
+作用：
+让当前表字段的值在另一个表中字段值的范围内选择
+
+满足条件：
+表的存储引擎(ENGINE)必须是innodb
+字段类型要一致
+被参照字段必须是索引类型的一种（通常是primary key）
+
+演示：
+mysql> create table cwb(                                    #创建cwb财务表
+    -> cwb_id int(2) primary key auto_increment,            #cwb_id付款编号 主键 值自动增长
+    -> name char(10),                                       #name学生名字
+    -> class char(9),                                       #class班级
+    -> pay float(7,2)                                       #pay支付金额 单精度浮点小数
+    -> )engine=innodb;                                      #表存储引擎=innodb
+Query OK, 0 rows affected (0.08 sec)
+
+mysql> insert into cwb(name,class,pay) values               #插入name、class、pay字段的表记录
+    -> ("tom","g3c4","507.5"),
+    -> ("jerry","g3c4","403"),
+    -> ("marry","g3c4","304");
+Query OK, 3 rows affected (0.02 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> select * from cwb;                                   #查看cwb财务表记录
++--------+-------+-------+--------+
+| cwb_id | name  | class | pay    |
++--------+-------+-------+--------+
+|      1 | tom   | g3c4  | 507.50 |
+|      2 | jerry | g3c4  | 403.00 |
+|      3 | marry | g3c4  | 304.00 |
++--------+-------+-------+--------+
+3 rows in set (0.00 sec)
+
+
+mysql> create table g3c4(                                   #创建g3c4三年级4班班级表
+stu_id int(2),                                              #stu_id学号
+name char(10),                                              #name学生姓名
+sex enum("boy","girl"),                                     #性别
+phone char(11),                                             #电话
+foreign key(stu_id) references cwb(cwb_id) on update cascade on delete cascade          #外键(外检名) 关联 cwb(cwb_id)字段 更新和删除同步
+)engine=innodb;
+Query OK, 0 rows affected (0.06 sec)
+
+mysql> desc g3c4;                                           #查看g3c4表结构
++--------+--------------------+------+-----+---------+-------+
+| Field  | Type               | Null | Key | Default | Extra |
++--------+--------------------+------+-----+---------+-------+
+| stu_id | int(2)             | YES  | MUL | NULL    |       |
+| name   | char(10)           | YES  |     | NULL    |       |
+| sex    | enum('boy','girl') | YES  |     | NULL    |       |
+| phone  | char(11)           | YES  |     | NULL    |       |
++--------+--------------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+mysql> insert into g3c4(stu_id,name) values (1,"tom"),(2,"jerry"),(3,"marry");          #插入g3c4表记录，id、name和cwb表保持一致
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql> select * from g3c4;                          #查看g3c4表记录
++--------+-------+------+-------+
+| stu_id | name  | sex  | phone |
++--------+-------+------+-------+
+|      1 | tom   | NULL | NULL  |
+|      2 | jerry | NULL | NULL  |
+|      3 | marry | NULL | NULL  |
++--------+-------+------+-------+
+3 rows in set (0.00 sec)
+
+mysql> delete from cwb where cwb_id=3;              #删除cwb表cwb_id字段为3的记录
+Query OK, 1 row affected (0.03 sec)
+mysql> update cwb set cwb_id=8 where cwb_id=1;      #将cwb表cwb_id=1的记录改为cwb_id=8
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from g3c4;                          #查看g3c4表随cwb表发生的改变
++--------+-------+------+-------+
+| stu_id | name  | sex  | phone |
++--------+-------+------+-------+
+|      8 | tom   | NULL | NULL  |
+|      2 | jerry | NULL | NULL  |
++--------+-------+------+-------+
+2 rows in set (0.00 sec)
