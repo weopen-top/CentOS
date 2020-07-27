@@ -5,33 +5,103 @@
 是mysql数据库服务软件自带的功能程序，
 是表的处理器，不同的存储引擎有不同的功能和数据存储方式。
 
-【查看 修改 表和数据库服务使用的存储引擎】
-查看数据库服务的存储引擎：
-show engines;
 
-演示：
-mysql> show engines\G;
+【查看 修改 表和数据库服务使用的存储引擎】
+
+查看数据库服务所有的存储引擎：
+show engines;
+演示1：
+mysql> show engines\G;          #查看所有存储引擎
 *************************** 1. row ***************************
       Engine: InnoDB
-     Support: DEFAULT           #建表支持：默认（缺省）
+     Support: DEFAULT           #是否支持：默认（缺省，当建表时没有指定存储引擎时默认的存储引擎）
      Comment: Supports transactions, row-level locking, and foreign keys        #描述：支持show，支持行索引，支持外键。
 Transactions: YES               #是否支持show
           XA: YES
   Savepoints: YES
 ...
 
-查看表的存储引擎；：
-show create table 表名;
 
-演示：
-mysql> show create table t216\G;
+
+查看表的存储引擎；
+show create table 表名;
+演示2：
+mysql> show create table t216\G;                    #查看表的存储引擎（即查看建表命令）
 *************************** 1. row ***************************
        Table: t216
 Create Table: CREATE TABLE `t216` (
 ...
-) ENGINE=InnoDB DEFAULT CHARSET=latin1
+) ENGINE=InnoDB DEFAULT CHARSET=latin1              #ENGINE=InnoDB表示存储引擎为InnoDB
 ...
 
-mysql> show create table 表名;            #查看建表命令
+
+
+建表时指定存储引擎：
+create table 表名(字段名 字段类型 约束条件)engine=存储引擎名;
+演示3：
+mysql> create table studb.t31(                      #在studb库下创建t31表
+    -> name char(10),
+    -> age int(2)
+    -> )engine=myisam;                              #指定存储引擎为MyISAM
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> show create table studb.t31\G;               #查看建表命令
+*************************** 1. row ***************************
+       Table: t31
+Create Table: CREATE TABLE `t31` (
+  `name` char(10) DEFAULT NULL,
+  `age` int(2) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1              #存储引擎为MyISAM
+1 row in set (0.00 sec)
+
+ERROR: 
+No query specified
+
+mysql> system ls /var/lib/mysql/studb/t31*          #查看studb.t31表文件
+/var/lib/mysql/studb/t31.frm  /var/lib/mysql/studb/t31.MYD  /var/lib/mysql/studb/t31.MYI
+
+mysql> create table studb.t32( name char(10), age int(2) );         #创建studb.t32表，存储引擎不指定为默认
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> system ls /var/lib/mysql/studb/t32*          #查看studb.t32的表文件，和studb.t31对比差别。
+/var/lib/mysql/studb/t32.frm  /var/lib/mysql/studb/t32.ibd
+
+（结论：每个存储引擎的功能不一样，存储的方式也不一样。）
+
+
+
+修改表存储引擎：
+alter table 表名 engine=存储引擎名;
+演示4：
+mysql> alter table studb.t32 engine=MEMORY;             #将演示3创建的studb.t32表的存储引擎改为memory
+Query OK, 0 rows affected (0.14 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> show create table studb.t32\G;                   #查看studb.t32表的建表命令
+*************************** 1. row ***************************
+       Table: t32
+Create Table: CREATE TABLE `t32` (
+  `name` char(10) DEFAULT NULL,
+  `age` int(2) DEFAULT NULL
+) ENGINE=MEMORY DEFAULT CHARSET=latin1                  #存储引擎已经改为MEMORY了
+1 row in set (0.00 sec)
+
+ERROR: 
+No query specified
+
+
+
+修改数据库服务默认存储引擎：
+# vim /etc/my.cnf                       #修改/etc/my.cnf配置文件
+...
+[mysqld]
+default-storage-engine=存储引擎名       #在[mysqld]下添加default-storage-engine=存储引擎名
+...
+
+# systemctl restart mysqld              #重启mysqld服务
+# mysql -u用户名 -p密码                 #重新登陆mysql
+# show engines;                         #查看数据库服务的存储引擎，Support: DEFAULT为默认存储引擎
+
+
 
 【常用存储引擎的特点】
