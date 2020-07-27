@@ -13,9 +13,9 @@ show engines;
 mysql> show engines\G;
 *************************** 1. row ***************************
       Engine: InnoDB
-     Support: DEFAULT
-     Comment: Supports transactions, row-level locking, and foreign keys
-Transactions: YES
+     Support: DEFAULT           #建表支持：默认（缺省）
+     Comment: Supports transactions, row-level locking, and foreign keys        #描述：支持show，支持行索引，支持外键。
+Transactions: YES               #是否支持show
           XA: YES
   Savepoints: YES
 ...
@@ -31,3 +31,7 @@ Create Table: CREATE TABLE `t216` (
 ...
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 ...
+
+mysql> show create table 表名;            #查看建表命令
+
+【常用存储引擎的特点】
