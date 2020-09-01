@@ -385,7 +385,7 @@ stu_id int(2),                                              #stu_id学号
 name char(10),                                              #name学生姓名
 sex enum("boy","girl"),                                     #性别
 phone char(11),                                             #电话
-foreign key(stu_id) references cwb(cwb_id) on update cascade on delete cascade          #外键(外检名) 关联 cwb(cwb_id)字段 更新和删除同步
+foreign key(stu_id) references cwb(cwb_id) on update cascade on delete cascade          #外键(外键名) 关联 cwb(cwb_id)字段 更新和删除同步
 )engine=innodb;
 Query OK, 0 rows affected (0.06 sec)
 
